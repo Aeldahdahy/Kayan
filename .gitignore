@@ -1,8 +1,11 @@
-# # git
-# .gitignore
+# git
+.gitignore
 
-# # node modules package
+# node modules package
 /node_modules
 
-# # env
-# .env
+# env
+.env
+
+# data base
+.txt
