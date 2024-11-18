@@ -1,18 +1,13 @@
 const express = require('express');
 const app = express();
-const dotenv = require('dotenv');
-const db = require('./config/db');
-const publicRouter = require('./Routes/publicRoutes');
+const db = require('./db/db');
+const bodyParser = require('body-parser');
+const Routes = require('./Routes/Routes');
 
-dotenv.config();
+require('dotenv').config();
 
-app.use('/api', publicRouter);
-
-
-
-
-
-
+app.use(bodyParser.json());
+app.use('/public', Routes);
 
 const PORT = process.env.PORT;
-app.listen(PORT, () => {console.log(`Server is running at port ${PORT}`)});
+app.listen(PORT, console.log(`server is running at port ${PORT}`));
