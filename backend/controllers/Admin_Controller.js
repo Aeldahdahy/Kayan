@@ -1,7 +1,6 @@
 const db = require('../db/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-// const verifyToken = require('../middleware/authMiddleware');
 
 
 const getAdmin = async (req, res) => {
@@ -146,8 +145,132 @@ const signInAdmin =  async (req, res) => {
     }
 };
 
+const createBrand = async (req, res) => {
+    const { brand_name, brand_country } = req.body;
+    const logoFile = req.file; // Get the uploaded file
+
+    if (!brand_name || !brand_country || !logoFile) {
+        return res.status(400).json({ message: 'Please provide all required fields: brand_name, brand_country, and brand_logo' });
+    }
+
+    // Generate the logo path (relative for serving as a static file)
+    const brand_logo = `/uploads/brands/${logoFile.filename}`;
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Insert brand into the table
+            const [insertResult] = await connection.query(
+                'INSERT INTO brand (brand_name, brand_country, brand_logo) VALUES (?, ?, ?)',
+                [brand_name, brand_country, brand_logo]
+            );
+
+            if (insertResult.affectedRows === 0) {
+                await connection.rollback();
+                return res.status(500).json({ message: 'Error inserting brand' });
+            }
+
+            // Retrieve the newly inserted brand
+            const [newBrand] = await connection.query(
+                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+                [insertResult.insertId]
+            );
+
+            await connection.commit();
+            res.status(201).json({ message: 'Brand created successfully', brand: newBrand[0] });
+
+        } catch (error) {
+            await connection.rollback();
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const updateBrand = async (req, res) => {
+    const { brand_id, brand_name, brand_country } = req.body;
+    const logoFile = req.file; // Get the uploaded file, if any
+
+    if (!brand_id || !brand_name || !brand_country) {
+        return res.status(400).json({ message: 'Please provide all required fields: brand_id, brand_name, and brand_country' });
+    }
+
+    // Generate the logo path (only if a new file is uploaded)
+    const brand_logo = logoFile ? `/uploads/brands/${logoFile.filename}` : null;
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Check if the brand exists
+            const [existingBrand] = await connection.query(
+                'SELECT brand_logo FROM brand WHERE brand_id = ?',
+                [brand_id]
+            );
+
+            if (existingBrand.length === 0) {
+                await connection.rollback();
+                return res.status(404).json({ message: 'Brand not found' });
+            }
+
+            // Prepare update query and parameters
+            let updateQuery = 'UPDATE brand SET brand_name = ?, brand_country = ?';
+            const queryParams = [brand_name, brand_country];
+
+            if (brand_logo) {
+                updateQuery += ', brand_logo = ?';
+                queryParams.push(brand_logo);
+            }
+
+            updateQuery += ' WHERE brand_id = ?';
+            queryParams.push(brand_id);
+
+            // Execute update query
+            const [updateResult] = await connection.query(updateQuery, queryParams);
+
+            if (updateResult.affectedRows === 0) {
+                await connection.rollback();
+                return res.status(500).json({ message: 'Error updating brand' });
+            }
+
+            // Retrieve the updated brand
+            const [updatedBrand] = await connection.query(
+                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+                [brand_id]
+            );
+
+            await connection.commit();
+            res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand[0] });
+
+        } catch (error) {
+            await connection.rollback();
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+
+
 module.exports = {
     getAdmin,
     createAdmin,
-    signInAdmin
+    signInAdmin,
+    createBrand,
+    updateBrand
 };

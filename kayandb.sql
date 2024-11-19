@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 19, 2024 at 05:59 PM
+-- Generation Time: Nov 19, 2024 at 08:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -50,9 +50,24 @@ INSERT INTO `admin` (`admin_id`, `username`, `password`) VALUES
 CREATE TABLE `brand` (
   `brand_id` int(11) NOT NULL,
   `brand_name` varchar(255) NOT NULL,
-  `barnd_contry` varchar(255) NOT NULL,
+  `brand_country` varchar(255) NOT NULL,
   `brand_logo` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `brand`
+--
+
+INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`) VALUES
+(1, 'Burger', 'Oman', '/uploads/brands/1732041712042-Android Emulator - Pixel_8_Pro_API_35_5554 8_25_2024 9_06_23 PM.png'),
+(2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1732043444277-Dina Farms OD - Google Docs - Google Chrome 11_16_2024 1_54_38 PM.png'),
+(3, 'Elba', 'Oman', '/uploads/brands/1732043480229-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_47_21 PM.png'),
+(4, 'Elica', 'Oman', '/uploads/brands/1732043519110-Products - Google Chrome 11_16_2024 2_00_22 PM.png'),
+(5, 'Lieheir', 'Oman', '/uploads/brands/1732043565190-_Wi-Fi 10_20_2024 6_50_48 PM.png'),
+(6, 'Fresh', 'Oman', '/uploads/brands/1732043583718-_Wi-Fi 10_27_2024 6_56_10 PM.png'),
+(7, 'LDYLUIM', 'Oman', '/uploads/brands/1732043613837-Marketing in dynamic Envirnment 2023 - Dina Farms - Final Version - (I) Marketing In a Dynamic - Studocu - Google Chrome 11_17_2024 3_36_36 PM.png'),
+(8, 'Lamborghini', 'Oman', '/uploads/brands/1732043654927-System BAS DASHBORD - web - Google Chrome 9_2_2024 9_44_46 PM.png'),
+(9, 'Kumtel', 'Oman', '/uploads/brands/1732043748634-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_49_08 PM.png');
 
 -- --------------------------------------------------------
 
@@ -179,13 +194,13 @@ ALTER TABLE `sub_category`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `category`
@@ -231,7 +246,7 @@ ALTER TABLE `procut_image`
 -- Constraints for table `product`
 --
 ALTER TABLE `product`
-  ADD CONSTRAINT `admin_product_fk` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`Admin_id`),
+  ADD CONSTRAINT `admin_product_fk` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`admin_id`),
   ADD CONSTRAINT `brand_product_fk` FOREIGN KEY (`brand_id`) REFERENCES `brand` (`brand_id`),
   ADD CONSTRAINT `subcategory_product_fk` FOREIGN KEY (`sub_category_id`) REFERENCES `sub_category` (`sub_category_id`);
 
