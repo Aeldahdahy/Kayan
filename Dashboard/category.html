@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Categories</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Categories</h1>
+    </div>
+    <div class="container">
+        <form id="categoryForm">
+            <h2>Create or Update Category</h2>
+            <input type="hidden" id="categoryId">
+            <input type="text" id="categoryName" placeholder="Category Name" required>
+            <button type="submit">Save Category</button>
+        </form>
+        <h2>All Categories</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoryList">
+                <!-- Dynamic content -->
+            </tbody>
+        </table>
+        <a href="dashboard.html" class="back-btn btn">Back</a>
+    </div>
+    <script>
+        const API_BASE = "http://localhost:3000/api";
+
+        const categoryForm = document.getElementById("categoryForm");
+        const categoryList = document.getElementById("categoryList");
+        const categoryId = document.getElementById("categoryId");
+        const categoryName = document.getElementById("categoryName");
+
+        async function fetchCategories() {
+            const res = await fetch(`${API_BASE}/categories`);
+            const categories = await res.json();
+            categoryList.innerHTML = categories.map(category => `
+                <tr>
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>
+                        <button onclick="editCategory(${category.id})">Edit</button>
+                        <button onclick="deleteCategory(${category.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        categoryForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = { name: categoryName.value };
+            const method = categoryId.value ? "PUT" : "POST";
+            const url = categoryId.value ? `${API_BASE}/categories/${categoryId.value}` : `${API_BASE}/categories`;
+            await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            categoryForm.reset();
+            categoryId.value = "";
+            fetchCategories();
+        });
+
+        async function editCategory(id) {
+            const res = await fetch(`${API_BASE}/categories/${id}`);
+            const category = await res.json();
+            categoryId.value = category.id;
+            categoryName.value = category.name;
+        }
+
+        async function deleteCategory(id) {
+            await fetch(`${API_BASE}/categories/${id}`, { method: "DELETE" });
+            fetchCategories();
+        }
+
+        fetchCategories();
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subcategories</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Subcategories</h1>
+    </div>
+    <div class="container">
+        <form id="subcategoryForm">
+            <h2>Create or Update Subcategory</h2>
+            <input type="hidden" id="subcategoryId">
+            <input type="text" id="subcategoryName" placeholder="Subcategory Name" required>
+            <select id="categoryId" required>
+                <option value="" disabled selected>Select Category</option>
+            </select>
+            <button type="submit">Save Subcategory</button>
+        </form>
+        <h2>All Subcategories</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="subcategoryList">
+                <!-- Dynamic content -->
+            </tbody>
+        </table>
+        <a href="dashboard.html" class="back-btn btn">Back</a>
+    </div>
+    <script>
+        const subcategoryForm = document.getElementById("subcategoryForm");
+        const subcategoryList = document.getElementById("subcategoryList");
+        const subcategoryId = document.getElementById("subcategoryId");
+        const subcategoryName = document.getElementById("subcategoryName");
+        const categorySelect = document.getElementById("categoryId");
+
+        async function fetchCategoriesForSubcategory() {
+            const res = await fetch(`${API_BASE}/categories`);
+            const categories = await res.json();
+            categorySelect.innerHTML += categories.map(category => `
+                <option value="${category.id}">${category.name}</option>
+            `).join('');
+        }
+
+        async function fetchSubcategories() {
+            const res = await fetch(`${API_BASE}/subcategories`);
+            const subcategories = await res.json();
+            subcategoryList.innerHTML = subcategories.map(subcategory => `
+                <tr>
+                    <td>${subcategory.id}</td>
+                    <td>${subcategory.name}</td>
+                    <td>${subcategory.category.name}</td>
+                    <td>
+                        <button onclick="editSubcategory(${subcategory.id})">Edit</button>
+                        <button onclick="deleteSubcategory(${subcategory.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        subcategoryForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                name: subcategoryName.value,
+                categoryId: categorySelect.value,
+            };
+            const method = subcategoryId.value ? "PUT" : "POST";
+            const url = subcategoryId.value ? `${API_BASE}/subcategories/${subcategoryId.value}` : `${API_BASE}/subcategories`;
+            await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            subcategoryForm.reset();
+            subcategoryId.value = "";
+            fetchSubcategories();
+        });
+
+        async function editSubcategory(id) {
+            const res = await fetch(`${API_BASE}/subcategories/${id}`);
+            const subcategory = await res.json();
+            subcategoryId.value = subcategory.id;
+            subcategoryName.value = subcategory.name;
+            categorySelect.value = subcategory.categoryId;
+        }
+
+        async function deleteSubcategory(id) {
+            await fetch(`${API_BASE}/subcategories/${id}`, { method: "DELETE" });
+            fetchSubcategories();
+        }
+
+        fetchCategoriesForSubcategory();
+        fetchSubcategories();
+    </script>
+</body>
+</html>

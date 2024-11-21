@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <h1>Admin Login</h1>
+        </div>
+        <div class="container">
+            <form id="loginForm">
+                <input type="text" placeholder="Username" id="username" required>
+                <input type="password" placeholder="Password" id="password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        
+        form.addEventListener('submit', async function(event){
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const data = {
+                username: username,
+                password: password
+            };
+
+            try {
+                
+                const response = await fetch('http://localhost:2000/public/loginadminAccount', {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if(response.ok){
+                    const result = await response.json();
+                    alert('Log-in successful!');
+                    console.log(result);
+                    window.location.href = './dashboard.html';
+                } else {
+                    const error = await response.json();
+                    alert('Invalid User name or Password');
+                    console.log(`Error: ${error.message}`);
+                }
+            } catch (error) {
+                console.error(`Error during Log-in: ${error}`);
+                alert('Failed to Log-in. Please try again.');
+            }
+           
+              
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Products</h1>
+    </div>
+    <div class="container">
+        <form id="productForm">
+            <h2>Create or Update Product</h2>
+            <input type="hidden" id="productId">
+            <input type="text" id="productName" placeholder="Product Name" required>
+            <textarea id="productDescription" placeholder="Product Description" rows="4" required></textarea>
+            <input type="number" id="productSale" placeholder="Product Sale Price" required>
+            <input type="number" id="stockQuantity" placeholder="Stock Quantity" required>
+            <select id="subcategoryId" required>
+                <option value="" disabled selected>Select Subcategory</option>
+            </select>
+            <select id="brandId" required>
+                <option value="" disabled selected>Select Brand</option>
+            </select>
+            <input type="file" id="productImage">
+            <button type="submit">Save Product</button>
+        </form>
+        <h2>All Products</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Sale Price</th>
+                    <th>Stock</th>
+                    <th>Subcategory</th>
+                    <th>Brand</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productList">
+                <!-- Dynamic content -->
+            </tbody>
+        </table>
+        <a href="dashboard.html" class="back-btn btn">Back</a>
+    </div>
+    <script>
+        const productForm = document.getElementById("productForm");
+        const productList = document.getElementById("productList");
+        const productId = document.getElementById("productId");
+        const productName = document.getElementById("productName");
+        const productDescription = document.getElementById("productDescription");
+        const productSale = document.getElementById("productSale");
+        const stockQuantity = document.getElementById("stockQuantity");
+        const subcategorySelect = document.getElementById("subcategoryId");
+        const brandSelect = document.getElementById("brandId");
+        const productImage = document.getElementById("productImage");
+
+        async function fetchSubcategoriesForProducts() {
+            const res = await fetch(`${API_BASE}/subcategories`);
+            const subcategories = await res.json();
+            subcategorySelect.innerHTML += subcategories.map(subcategory => `
+                <option value="${subcategory.id}">${subcategory.name}</option>
+            `).join('');
+        }
+
+        async function fetchBrandsForProducts() {
+            const res = await fetch(`${API_BASE}/brands`);
+            const brands = await res.json();
+            brandSelect.innerHTML += brands.map(brand => `
+                <option value="${brand.id}">${brand.name}</option>
+            `).join('');
+        }
+
+        async function fetchProducts() {
+            const res = await fetch(`${API_BASE}/products`);
+            const products = await res.json();
+            productList.innerHTML = products.map(product => `
+                <tr>
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.description}</td>
+                    <td>${product.sale}</td>
+                    <td>${product.stockQuantity}</td>
+                    <td>${product.subcategory.name}</td>
+                    <td>${product.brand.name}</td>
+                    <td><img src="${product.image}" alt="${product.name}"></td>
+                    <td>
+                        <button onclick="editProduct(${product.id})">Edit</button>
+                        <button onclick="deleteProduct(${product.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        productForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("name", productName.value);
+            formData.append("description", productDescription.value);
+            formData.append("sale", productSale.value);
+            formData.append("stockQuantity", stockQuantity.value);
+            formData.append("subcategoryId", subcategorySelect.value);
+            formData.append("brandId", brandSelect.value);
+            if (productImage.files[0]) {
+                formData.append("image", productImage.files[0]);
+            }
+            const method = productId.value ? "PUT" : "POST";
+            const url = productId.value ? `${API_BASE}/products/${productId.value}` : `${API_BASE}/products`;
+            await fetch(url, { method, body: formData });
+            productForm.reset();
+            productId.value = "";
+            fetchProducts();
+        });
+
+        async function editProduct(id) {
+            const res = await fetch(`${API_BASE}/products/${id}`);
+            const product = await res.json();
+            productId.value = product.id;
+            productName.value = product.name;
+            productDescription.value = product.description;
+            productSale.value = product.sale;
+            stockQuantity.value = product.stockQuantity;
+            subcategorySelect.value = product.subcategoryId;
+            brandSelect.value = product.brandId;
+        }
+
+        async function deleteProduct(id) {
+            await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
+            fetchProducts();
+        }
+
+        fetchSubcategoriesForProducts();
+        fetchBrandsForProducts();
+        fetchProducts();
+    </script>
+</body>
+</html>

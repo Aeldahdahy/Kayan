@@ -12,18 +12,30 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Add the user data to the request object
-        next(); // Proceed to the next middleware or route handler
+        req.user = decoded; // Attach decoded token (including admin_id) to the request object
+        next();
     } catch (error) {
-        // Check for specific error types
+        console.error('JWT Error:', error);
         if (error.name === 'JsonWebTokenError') {
             return res.status(400).json({ message: 'Invalid token.' });
         }
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ message: 'Token has expired.' });
         }
-        return res.status(500).json({ message: 'Server error.' }); // Handle any other errors
+        return res.status(500).json({ message: 'Server error.' });
     }
 };
 
-module.exports = authMiddleware;
+// Logout handler - invalidate token
+const logout = (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) {
+        return res.status(400).json({ message: 'No token provided to log out.' });
+    }
+
+    // Add token to the blacklist to invalidate it
+    activeTokens.add(token);
+    res.status(200).json({ message: 'Logged out successfully.' });
+};
+
+module.exports = { authMiddleware, logout };

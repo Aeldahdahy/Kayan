@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 19, 2024 at 08:17 PM
+-- Generation Time: Nov 22, 2024 at 12:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -80,6 +80,18 @@ CREATE TABLE `category` (
   `category_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `category`
+--
+
+INSERT INTO `category` (`category_id`, `category_name`) VALUES
+(1, 'Furniture'),
+(2, 'Wardrobe'),
+(3, 'Home appliances'),
+(4, 'Bathroom units'),
+(5, 'Sinks & MiXers'),
+(6, 'Tubes');
+
 -- --------------------------------------------------------
 
 --
@@ -91,18 +103,6 @@ CREATE TABLE `contact` (
   `client_name` varchar(255) NOT NULL,
   `client_email` varchar(255) NOT NULL,
   `message` varchar(300) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `procut_image`
---
-
-CREATE TABLE `procut_image` (
-  `image_id` int(11) NOT NULL,
-  `image` varchar(255) NOT NULL,
-  `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -125,6 +125,18 @@ CREATE TABLE `product` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `product_image`
+--
+
+CREATE TABLE `product_image` (
+  `image_id` int(11) NOT NULL,
+  `image` varchar(255) NOT NULL,
+  `product_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sub_category`
 --
 
@@ -133,6 +145,28 @@ CREATE TABLE `sub_category` (
   `sub_category_name` varchar(255) NOT NULL,
   `category_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sub_category`
+--
+
+INSERT INTO `sub_category` (`sub_category_id`, `sub_category_name`, `category_id`) VALUES
+(1, 'Dining rooms', 1),
+(2, 'Bed rooms', 1),
+(3, 'Guest rooms', 1),
+(4, 'Living rooms', 1),
+(5, 'Kids rooms', 1),
+(6, 'Decorative', 2),
+(7, 'Cupboard', 2),
+(8, 'Open shelves', 2),
+(9, 'Hobs', 3),
+(10, 'Dishwashers', 3),
+(11, 'Cooker hood', 3),
+(12, 'Ovens', 3),
+(13, 'Washing machines', 3),
+(14, 'Refrigerators', 3),
+(15, 'Coffee machines', 3),
+(16, 'Microwaves', 3);
 
 --
 -- Indexes for dumped tables
@@ -164,13 +198,6 @@ ALTER TABLE `contact`
   ADD PRIMARY KEY (`contact_id`);
 
 --
--- Indexes for table `procut_image`
---
-ALTER TABLE `procut_image`
-  ADD PRIMARY KEY (`image_id`),
-  ADD KEY `product_image_fk` (`product_id`);
-
---
 -- Indexes for table `product`
 --
 ALTER TABLE `product`
@@ -178,6 +205,13 @@ ALTER TABLE `product`
   ADD KEY `admin_product_fk` (`admin_id`),
   ADD KEY `subcategory_product_fk` (`sub_category_id`),
   ADD KEY `brand_product_fk` (`brand_id`);
+
+--
+-- Indexes for table `product_image`
+--
+ALTER TABLE `product_image`
+  ADD PRIMARY KEY (`image_id`),
+  ADD KEY `product_image_fk` (`product_id`);
 
 --
 -- Indexes for table `sub_category`
@@ -194,19 +228,19 @@ ALTER TABLE `sub_category`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `contact`
@@ -215,32 +249,26 @@ ALTER TABLE `contact`
   MODIFY `contact_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `procut_image`
---
-ALTER TABLE `procut_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `product_image`
+--
+ALTER TABLE `product_image`
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `sub_category`
 --
 ALTER TABLE `sub_category`
-  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `procut_image`
---
-ALTER TABLE `procut_image`
-  ADD CONSTRAINT `product_image_fk` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`);
 
 --
 -- Constraints for table `product`
@@ -249,6 +277,12 @@ ALTER TABLE `product`
   ADD CONSTRAINT `admin_product_fk` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`admin_id`),
   ADD CONSTRAINT `brand_product_fk` FOREIGN KEY (`brand_id`) REFERENCES `brand` (`brand_id`),
   ADD CONSTRAINT `subcategory_product_fk` FOREIGN KEY (`sub_category_id`) REFERENCES `sub_category` (`sub_category_id`);
+
+--
+-- Constraints for table `product_image`
+--
+ALTER TABLE `product_image`
+  ADD CONSTRAINT `product_image_fk` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`);
 
 --
 -- Constraints for table `sub_category`

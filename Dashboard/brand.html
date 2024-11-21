@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Brands</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Brands</h1>
+    </div>
+    <div class="container">
+        <form id="brandForm">
+            <h2>Create or Update Brand</h2>
+            <input type="hidden" id="brandId">
+            <input type="text" id="brandName" placeholder="Brand Name" required>
+            <input type="text" id="brandCountry" placeholder="Brand Country" required>
+            <input type="file" id="brandLogo">
+            <button type="submit">Save Brand</button>
+        </form>
+        <h2>All Brands</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th>Logo</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="brandList">
+                <!-- Dynamic content -->
+            </tbody>
+        </table>
+        <a href="dashboard.html" class="back-btn btn">Back</a>
+    </div>
+    <script>
+        const brandForm = document.getElementById("brandForm");
+        const brandList = document.getElementById("brandList");
+        const brandId = document.getElementById("brandId");
+        const brandName = document.getElementById("brandName");
+        const brandCountry = document.getElementById("brandCountry");
+        const brandLogo = document.getElementById("brandLogo");
+
+        async function fetchBrands() {
+            const res = await fetch(`${API_BASE}/brands`);
+            const brands = await res.json();
+            brandList.innerHTML = brands.map(brand => `
+                <tr>
+                    <td>${brand.id}</td>
+                    <td>${brand.name}</td>
+                    <td>${brand.country}</td>
+                    <td><img src="${brand.logo}" alt="${brand.name}" width="50"></td>
+                    <td>
+                        <button onclick="editBrand(${brand.id})">Edit</button>
+                        <button onclick="deleteBrand(${brand.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        brandForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("name", brandName.value);
+            formData.append("country", brandCountry.value);
+            if (brandLogo.files[0]) {
+                formData.append("logo", brandLogo.files[0]);
+            }
+            const method = brandId.value ? "PUT" : "POST";
+            const url = brandId.value ? `${API_BASE}/brands/${brandId.value}` : `${API_BASE}/brands`;
+            await fetch(url, { method, body: formData });
+            brandForm.reset();
+            brandId.value = "";
+            fetchBrands();
+        });
+
+        async function editBrand(id) {
+            const res = await fetch(`${API_BASE}/brands/${id}`);
+            const brand = await res.json();
+            brandId.value = brand.id;
+            brandName.value = brand.name;
+            brandCountry.value = brand.country;
+        }
+
+        async function deleteBrand(id) {
+            await fetch(`${API_BASE}/brands/${id}`, { method: "DELETE" });
+            fetchBrands();
+        }
+
+        fetchBrands();
+    </script>
+</body>
+</html>
