@@ -7,16 +7,87 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="language-toggle">
+        <button id="en-btn">English</button>
+        <button id="ar-btn">العربية</button>
+    </div>
     <div class="header">
-        <h1>Admin Dashboard</h1>
+        <h1 id="dashboard-title">Admin Dashboard</h1>
     </div>
     <div class="container">
         <div class="dashboard-buttons">
-            <a href="brand.html">Manage Brands</a>
-            <a href="category.html">Manage Categories</a>
-            <a href="subcategory.html">Manage Subcategories</a>
-            <a href="product.html">Manage Products</a>
+            <a href="brand.html" id="manage-brands">Manage Brands</a>
+            <a href="category.html" id="manage-categories">Manage Categories</a>
+            <a href="subcategory.html" id="manage-subcategories">Manage Subcategories</a>
+            <a href="product.html" id="manage-products">Manage Products</a>
         </div>
+        <button id="logout-btn" class="btn logout-btn">Logout</button>
     </div>
+<script>
+    const translations = {
+        en: {
+            dashboardTitle: "Admin Dashboard",
+            manageBrands: "Manage Brands",
+            manageCategories: "Manage Categories",
+            manageSubcategories: "Manage Subcategories",
+            manageProducts: "Manage Products",
+            logout: "Logout",
+            logoutConfirmation: "Do you want to log out?",
+            logoutSuccess: "Logged out successfully!"
+        },
+        ar: {
+            dashboardTitle: "لوحة تحكم المسؤول",
+            manageBrands: "إدارة العلامات التجارية",
+            manageCategories: "إدارة الفئات",
+            manageSubcategories: "إدارة الفئات الفرعية",
+            manageProducts: "إدارة المنتجات",
+            logout: "تسجيل الخروج",
+            logoutConfirmation: "هل تريد تسجيل الخروج؟",
+            logoutSuccess: "تم تسجيل الخروج بنجاح!"
+        }
+    };
+
+    const langButtons = document.querySelectorAll('.language-toggle button');
+    const dashboardTitle = document.getElementById('dashboard-title');
+    const logoutBtn = document.getElementById('logout-btn');
+    const manageBrands = document.getElementById('manage-brands');
+    const manageCategories = document.getElementById('manage-categories');
+    const manageSubcategories = document.getElementById('manage-subcategories');
+    const manageProducts = document.getElementById('manage-products');
+
+    function applyTranslations(lang) {
+        dashboardTitle.textContent = translations[lang].dashboardTitle;
+        manageBrands.textContent = translations[lang].manageBrands;
+        manageCategories.textContent = translations[lang].manageCategories;
+        manageSubcategories.textContent = translations[lang].manageSubcategories;
+        manageProducts.textContent = translations[lang].manageProducts;
+        logoutBtn.textContent = translations[lang].logout;
+
+        // Save selected language to localStorage
+        localStorage.setItem('selectedLanguage', lang);
+    }
+
+    // Retrieve saved language from localStorage or default to 'en'
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    applyTranslations(savedLanguage);
+
+    // Add event listeners to toggle buttons
+    langButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const lang = button.id.split('-')[0];
+            applyTranslations(lang);
+        });
+    });
+
+    // Handle logout
+    logoutBtn.addEventListener('click', () => {
+        const confirmationMessage = translations[savedLanguage].logoutConfirmation;
+
+        if (confirm(confirmationMessage)) {
+            alert(translations[savedLanguage].logoutSuccess);
+            window.location.href = 'index.html'; // Redirect back to login
+        }
+    });
+</script>
 </body>
 </html>
