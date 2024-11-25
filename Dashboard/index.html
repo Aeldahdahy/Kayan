@@ -74,28 +74,42 @@
 
             // Handle login form submission
             document.getElementById('loginForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
+                event.preventDefault();
 
-            const username = usernameInput.value;
-            const password = passwordInput.value;
+                const username = usernameInput.value;
+                const password = passwordInput.value;
 
-            try {
-                const response = await fetch('http://localhost:2000/public/loginadminAccount', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+                try {
+                    const response = await fetch('http://localhost:2000/public/loginadminAccount', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
 
-                if (response.ok) {
-                    alert(translations[savedLanguage].loginSuccess);
-                    window.location.href = './dashboard.html';
-                } else {
+                    if (response.ok) {
+                        const data = await response.json(); // Parse the JSON response
+                        const token = data.token; // Extract the token from the response
+                        console.log(token);
+                        if (token) {
+                            // Save the token in localStorage
+                            localStorage.setItem('authToken', token);
+                            
+                            alert(translations[savedLanguage].loginSuccess);
+                            window.location.href = './dashboard.html'; // Redirect to dashboard
+                        } else {
+                            alert(translations[savedLanguage].loginError);
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Login failed:', errorData.message || 'Unknown error');
+                        alert(translations[savedLanguage].loginError);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
                     alert(translations[savedLanguage].loginError);
                 }
-            } catch (error) {
-                alert(translations[savedLanguage].loginError);
-            }
-        });
+            });
+
     </script>
 </body>
 </html>

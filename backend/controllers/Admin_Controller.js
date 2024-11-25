@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
+const { activeTokens } = require('../middleware/authMiddleware');
 
 //--------------------------------------------------------------------- Admin --------------------------------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ const createAdmin =  async (req, res) => {
     }
 };
 
-const signInAdmin =  async (req, res) => {
+const signInAdmin = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -123,41 +124,48 @@ const signInAdmin =  async (req, res) => {
 
             const admin = adminData[0];
 
-            // Compare the provided password with the hashed password stored in the database
             const isPasswordValid = await bcrypt.compare(password, admin.password);
-
             if (!isPasswordValid) {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
-            // Generate the JWT token with admin_id and username
+            // Invalidate previous token if it exists
+            if (activeTokens.has(admin.admin_id)) {
+                const oldToken = activeTokens.get(admin.admin_id);
+                activeTokens.delete(admin.admin_id); // Remove old token
+                // console.log(`Invalidated previous token for admin_id: ${admin.admin_id}`);
+            }
+
+            // Generate a new token
             const token = jwt.sign(
-                { username: admin.username, admin_id: admin.admin_id }, // Include admin_id in token
+                { username: admin.username, admin_id: admin.admin_id },
                 process.env.JWT_SECRET,
                 { expiresIn: '1h' }
             );
-            
 
-            // Remove the password from the admin object before sending it to the client
-            delete admin.password;
+            // Store the new token in the activeTokens Map
+            activeTokens.set(admin.admin_id, token);
+
+            const { password: _, ...adminWithoutPassword } = admin;
 
             res.status(200).json({
-                message: 'Login successful', 
-                admin: admin, 
-                token: token // Send the token in the response
+                message: 'Login successful',
+                admin: adminWithoutPassword,
+                token: token,
             });
 
         } catch (error) {
             console.error('Database query error:', error);
-            res.status(500).json({ message: 'Server error' });
+            res.status(500).json({ message: 'Server error during authentication' });
         } finally {
             connection.release();
         }
     } catch (error) {
         console.error('Database connection error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error connecting to the database' });
     }
 };
+
 
 
 //--------------------------------------------------------------------- Brand --------------------------------------------------------------------------------------------------
@@ -211,72 +219,136 @@ const createBrand = async (req, res) => {
     }
 };
 
-const updateBrand = async (req, res) => {
-    const { brand_id, brand_name, brand_country } = req.body;
-    const logoFile = req.file; // Get the uploaded file, if any
-
-    if (!brand_id || (!brand_name && !brand_country && !logoFile)) {
-        return res.status(400).json({ message: 'Please provide brand id and at least one field to update' });
-    }
-
-    // Generate the logo path (only if a new file is uploaded)
-    const brand_logo = logoFile ? `/uploads/brands/${logoFile.filename}` : null;
-
+const getBrand = async (req, res) => {
     try {
         const connection = await db.getConnection();
         try {
-            let updateFields = [];
-            let updateParams = [];
-
-            if (brand_name) {
-                updateFields.push('brand_name = ?');
-                updateParams.push(brand_name);
-            }
-
-            if (brand_country) {
-                updateFields.push('brand_country = ?');
-                updateParams.push(brand_country);
-            }
-
-            if (brand_logo) {
-                updateFields.push('brand_logo = ?');
-                updateParams.push(brand_logo);
-            }
-
-            updateParams.push(brand_id);
-
-            const updateQuery = `UPDATE brand 
-                                 SET ${updateFields.join(',')} WHERE brand_id = ?`;
-
-            // Execute the update query
-            const [updateResult] = await connection.query(updateQuery, updateParams);
-
-            if (updateResult.affectedRows === 0) {
-                return res.status(404).json({ message: 'Brand not found or no fields were updated' });
-            }
-
-            // Retrieve the updated brand
-            const [updatedBrand] = await connection.query(
-                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
-                [brand_id]
+            // Query to retrieve all brands from the database
+            const [brands] = await connection.query(
+                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand'
             );
 
-            res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand[0] });
+            if (brands.length === 0) {
+                return res.status(404).json({ message: 'No brands found' });
+            }
+
+            res.status(200).json({ message: 'Brands retrieved successfully', brands });
 
         } catch (error) {
-            console.error('Database query error:', error);
+            console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
             connection.release();
         }
     } catch (error) {
-        console.error('Database connection error:', error);
+        console.error('Database connection error: ', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
+const updateBrand = async (req, res) => {
+    const brand_id = req.params.id;  // Extract the brand ID from the request parameters
+
+    if (!brand_id) {
+        return res.status(400).json({ message: 'Brand ID is required' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve a single brand based on the provided brand_id
+            const [brand] = await connection.query(
+                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+                [brand_id]
+            );
+
+            if (brand.length === 0) {
+                return res.status(404).json({ message: 'Brand not found' });
+            }
+
+            res.status(200).json({ message: 'Brand retrieved successfully', brand: brand[0] });
+
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+// const updateBrand = async (req, res) => {
+//     const { brand_name, brand_country } = req.body;
+//     const brand_id = req.params.id;
+//     const logoFile = req.file; // Get the uploaded file, if any
+
+//     if (!brand_id || (!brand_name && !brand_country && !logoFile)) {
+//         return res.status(400).json({ message: 'Please provide brand id and at least one field to update' });
+//     }
+
+//     // Generate the logo path (only if a new file is uploaded)
+//     const brand_logo = logoFile ? `/uploads/brands/${logoFile.filename}` : null;
+
+//     try {
+//         const connection = await db.getConnection();
+//         try {
+//             let updateFields = [];
+//             let updateParams = [];
+
+//             if (brand_name) {
+//                 updateFields.push('brand_name = ?');
+//                 updateParams.push(brand_name);
+//             }
+
+//             if (brand_country) {
+//                 updateFields.push('brand_country = ?');
+//                 updateParams.push(brand_country);
+//             }
+
+//             if (brand_logo) {
+//                 updateFields.push('brand_logo = ?');
+//                 updateParams.push(brand_logo);
+//             }
+
+//             updateParams.push(brand_id);
+
+//             const updateQuery = `UPDATE brand 
+//                                  SET ${updateFields.join(',')} WHERE brand_id = ?`;
+
+//             // Execute the update query
+//             const [updateResult] = await connection.query(updateQuery, updateParams);
+
+//             if (updateResult.affectedRows === 0) {
+//                 return res.status(404).json({ message: 'Brand not found or no fields were updated' });
+//             }
+
+//             // Retrieve the updated brand
+//             const [updatedBrand] = await connection.query(
+//                 'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+//                 [brand_id]
+//             );
+
+//             res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand[0] });
+
+//         } catch (error) {
+//             console.error('Database query error:', error);
+//             res.status(500).json({ message: 'Server error' });
+//         } finally {
+//             connection.release();
+//         }
+//     } catch (error) {
+//         console.error('Database connection error:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
 const deleteBrand = async (req, res) => {
-    const { brand_id } = req.body;
+    const  brand_id  = req.params.id;
 
     if (!brand_id) {
         return res.status(400).json({ message: 'Please provide a valid brand_id' });
@@ -874,6 +946,7 @@ module.exports = {
     createAdmin,
     signInAdmin,
     createBrand,
+    getBrand,
     updateBrand,
     deleteBrand,
     createCategory,
@@ -884,5 +957,5 @@ module.exports = {
     deleteSubCategory,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
 };

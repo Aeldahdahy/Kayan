@@ -80,14 +80,58 @@
     });
 
     // Handle logout
-    logoutBtn.addEventListener('click', () => {
-        const confirmationMessage = translations[savedLanguage].logoutConfirmation;
+    // logoutBtn.addEventListener('click', () => {
+    //     const confirmationMessage = translations[savedLanguage].logoutConfirmation;
 
-        if (confirm(confirmationMessage)) {
-            alert(translations[savedLanguage].logoutSuccess);
-            window.location.href = 'index.html'; // Redirect back to login
+    //     if (confirm(confirmationMessage)) {
+    //         alert(translations[savedLanguage].logoutSuccess);
+    //         window.location.href = 'index.html'; // Redirect back to login
+    //     }
+    // });
+
+    logoutBtn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        try {
+            const token = localStorage.getItem('authToken');
+            if(!token){
+                alert('You are not logged in.');
+                window.location.href = './index.html';
+                return;
+            }
+            
+            const response = await fetch('http://localhost:2000/public/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Attach token in Authorization header
+                }
+            });
+
+            if (response.ok) {
+                
+                localStorage.removeItem('authToken');
+
+                
+                alert('Logged out successfully.');
+                window.location.href = './index.html';
+            } else {
+                // Handle errors returned by the server
+                const data = await response.json();
+                alert(`Logout failed: ${data.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            alert('An error occurred during logout. Please try again.');
         }
     });
+    window.addEventListener('popstate', () => {
+                if (token) {
+                    // Redirect back to the dashboard or current page
+                    window.location.href = './dashboard.html';
+                }
+    });
+    
 </script>
+
 </body>
 </html>

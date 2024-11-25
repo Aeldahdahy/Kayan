@@ -8,6 +8,7 @@ const {
     createAdmin, 
     signInAdmin, 
     createBrand, 
+    getBrand,
     updateBrand, 
     deleteBrand, 
     createCategory, 
@@ -18,7 +19,7 @@ const {
     deleteSubCategory,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
 } = require('../controllers/Admin_Controller');
 
 // Show admin information logic
@@ -38,8 +39,10 @@ router.post('/createBrand', authMiddleware, brandUpload.single('brand_logo'), (r
     createBrand(req, res);
 });
 
+router.get('/getBrand', authMiddleware, getBrand);
+
 // Admin update-brand logic
-router.put('/updateBrand', authMiddleware, brandUpload.single('brand_logo'), (req, res, next) => {
+router.get('/updateBrand/:id', authMiddleware, brandUpload.single('brand_logo'), (req, res, next) => {
     if (req.fileValidationError) {
         return res.status(400).json({ message: req.fileValidationError });
     }
@@ -47,7 +50,7 @@ router.put('/updateBrand', authMiddleware, brandUpload.single('brand_logo'), (re
 });
 
 // Admin delete-brand logic
-router.delete('/deleteBrand', authMiddleware, deleteBrand);
+router.delete('/deleteBrand/:id', authMiddleware, deleteBrand);
 
 // Admin create-category logic
 router.post('/createCategory', authMiddleware, createCategory);

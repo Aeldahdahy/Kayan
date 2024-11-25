@@ -24,7 +24,7 @@
             <button type="submit" id="save-button">Save Brand</button>
         </form>
         <h2 id="brands-title">All Brands</h2>
-        <table>
+        <table id="brand-list">
             <thead>
                 <tr>
                     <th id="id-column">ID</th>
@@ -41,7 +41,12 @@
         <a href="dashboard.html" class="back-btn btn" id="back-button">Back</a>
     </div>
     <script>
-            const API_BASE = "http://localhost:3000/api";
+            const API_BASE = "http://localhost:2000/public";
+
+            // document.addEventListener("DOMContentLoaded", () => {
+            //     fetchBrands();  // Fetch and display brands when the page is ready
+            // }); 
+
 
             const translations = {
                 en: {
@@ -80,8 +85,8 @@
 
             const pageTitle = document.getElementById("page-title");
             const formTitle = document.getElementById("form-title");
-        const brandName = document.getElementById("brandName");
-        const brandCountry = document.getElementById("brandCountry");
+            const brandName = document.getElementById("brandName");
+            const brandCountry = document.getElementById("brandCountry");
             const saveButton = document.getElementById("save-button");
             const brandsTitle = document.getElementById("brands-title");
             const idColumn = document.getElementById("id-column");
@@ -90,6 +95,8 @@
             const logoColumn = document.getElementById("logo-column");
             const actionsColumn = document.getElementById("actions-column");
             const backButton = document.getElementById("back-button");
+            const brandForm = document.getElementById('brandForm');
+            const brandId = document.getElementById('brandId');
 
             const langButtons = document.querySelectorAll(".language-toggle button");
 
@@ -123,52 +130,199 @@
                     applyTranslations(lang);
                 });
             });
+           
+            async function fetchBrands() {
+                try {
+                    // Retrieve the token from localStorage
+                    const token = localStorage.getItem('authToken');  // This should be the same key you used to store the token
 
-        async function fetchBrands() {
-            const res = await fetch(`${API_BASE}/brands`);
-            const brands = await res.json();
-            brandList.innerHTML = brands.map(brand => `
-                <tr>
-                    <td>${brand.id}</td>
-                    <td>${brand.name}</td>
-                    <td>${brand.country}</td>
-                    <td><img src="${brand.logo}" alt="${brand.name}" width="50"></td>
-                    <td>
-                        <button onclick="editBrand(${brand.id})">${translations[savedLanguage].editButton}</button>
-                        <button onclick="deleteBrand(${brand.id})">${translations[savedLanguage].deleteButton}</button>
-                    </td>
-                </tr>
-            `).join("");
-        }
-
-        brandForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append("name", brandName.value);
-            formData.append("country", brandCountry.value);
-            if (brandLogo.files[0]) {
-                formData.append("logo", brandLogo.files[0]);
+                    // Check if token exists
+                    if (!token) {
+                        alert("Please log in to view the brands.");
+                        window.location.href = "index.html";  // Redirect to login page if token is not found
+                        return;
+                    }
+                    
+                    // Replace 'API_BASE' with the actual base URL of your API
+                    const res = await fetch(`${API_BASE}/getBrand`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,  // Add token in the header
+                        }
+                    });
+                    
+                    // Check if the response is successful (status 200)
+                    if (!res.ok) {
+                        throw new Error('Failed to fetch brands');
+                    }
+                    
+                    const data = await res.json();
+                    
+                    // Check if brands data is returned
+                    if (data.message && data.brands) {
+                        const brandList = document.getElementById('brand-list');  // Assuming you have a table with id 'brand-list'
+                        // console.log('kk');
+                        brandList.innerHTML = data.brands.map(brand => `
+                        <tr>
+                            <td>${brand.brand_id}</td>
+                            <td>${brand.brand_name}</td>
+                            <td>${brand.brand_country}</td>
+                            <td><img src="../backend/${brand.brand_logo}" alt="${brand.brand_name}" width="50"></td>
+                            <td>
+                                <button onclick="editBrand(${brand.brand_id})">${translations[savedLanguage].editButton}</button>
+                                <button onclick="deleteBrand(${brand.brand_id})">${translations[savedLanguage].deleteButton}</button>
+                                </td>
+                                </tr>
+                                `).join("");
+                    } else {
+                        console.error("Brands data not found in the response", data);
+                        alert("Failed to load brands.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching brands:', error);
+                    alert('Error fetching brands.');
+                }
             }
-            const method = brandId.value ? "PUT" : "POST";
-            const url = brandId.value ? `${API_BASE}/brands/${brandId.value}` : `${API_BASE}/brands`;
-            await fetch(url, { method, body: formData });
-            brandForm.reset();
-            brandId.value = "";
-            fetchBrands();
+
+
+       // Add or update brand logic
+brandForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem('authToken');  // This should be the same key you used to store the token
+
+    if (!token) {
+        alert("Please log in to add or edit a brand.");
+        window.location.href = "index.html";  // Redirect to login page if token is not found
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("brand_name", brandName.value);  // Assuming brandName is a valid input field
+    formData.append("brand_country", brandCountry.value);  // Assuming brandCountry is a valid input field
+    if (brandLogo.files[0]) {
+        formData.append("brand_logo", brandLogo.files[0]);  // Assuming brandLogo is a file input
+    }
+
+    const method = brandId.value ? "PUT" : "POST";  // Use PUT for update and POST for create
+    const url = brandId.value ? `${API_BASE}/createBrand/${brandId.value}` : `${API_BASE}/createBrand`;
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+            },
+            body: formData
         });
 
-        async function editBrand(id) {
-            const res = await fetch(`${API_BASE}/brands/${id}`);
-            const brand = await res.json();
-            brandId.value = brand.id;
-            brandName.value = brand.name;
-            brandCountry.value = brand.country;
+        if (!res.ok) {
+            throw new Error(`Failed to ${method === "POST" ? "create" : "update"} brand`);
         }
 
-        async function deleteBrand(id) {
-            await fetch(`${API_BASE}/brands/${id}`, { method: "DELETE" });
-            fetchBrands();
+        brandForm.reset();
+        brandId.value = "";  // Reset the form fields
+
+        // Reload the brands list after successful creation/update
+        fetchBrands();
+
+    } catch (error) {
+        console.error('Error while saving brand:', error);
+        alert(`Error while saving brand: ${error.message}`);
+    }
+});
+
+// Edit brand logic (populate the form with brand data)
+async function editBrand(id) {
+    const token = localStorage.getItem('authToken');  // Get token from localStorage
+
+    if (!token) {
+        alert("Please log in to edit the brand.");
+        window.location.href = "index.html";  // Redirect to login if token is not found
+        return;
+    }
+
+    try {
+        // Fetch the brand details
+        const res = await fetch(`${API_BASE}/updateBrand/${id}`, {
+            method: 'GET',  // Get the brand data before editing
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+            }
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch brand data.");
         }
+
+        const brand = await res.json();
+
+        // Log the brand data to the console to inspect its structure
+        console.log(brand);  // Add this line to check the structure of the response
+
+        // Check if brand data exists
+        if (brand && brand.brand_name && brand.brand_country) {
+            // Populate the form with the fetched brand data
+            brandId.value = brand.brand_id || '';
+            brandName.value = brand.brand_name || '';
+            brandCountry.value = brand.brand_country || '';
+            
+            // Optionally set the image preview if available
+            // if (brand.brand_logo) {
+            //     brandLogoPreview.src = `../backend/${brand.brand_logo}`;
+            // } else {
+            //     // Set a default image if no logo is available
+            //     brandLogoPreview.src = '../path/to/default-logo.png';
+            // }
+        } else {
+            alert("Brand data is incomplete or missing.");
+        }
+
+    } catch (error) {
+        console.error("Error editing brand:", error);
+        alert("Error fetching brand data.");
+    }
+}
+
+
+
+// Delete brand logic
+async function deleteBrand(id) {
+    const token = localStorage.getItem('authToken');  // Get token from localStorage
+
+    if (!token) {
+        alert("Please log in to delete the brand.");
+        window.location.href = "index.html";  // Redirect to login if token is not found
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/deleteBrand/${id}`, {  // Use URL parameter for the id
+            method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+            }
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to delete brand');
+        }
+
+        // Reload the brands list after successful deletion
+        fetchBrands();
+    } catch (error) {
+        console.error('Error deleting brand:', error);
+        alert('Error deleting brand');
+    }
+}
+
+// Fetch brands when the page loads
+document.addEventListener("DOMContentLoaded", fetchBrands);
+
 
         fetchBrands();
     </script>
