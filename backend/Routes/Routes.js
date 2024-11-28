@@ -118,7 +118,7 @@ router.get('/getProductID/:id', authMiddleware, productUpload.single('product_im
 });
 
 // Admin update-Product logic
-router.put('/updateProduct', authMiddleware, productUpload.single('product_image'), (req, res, next) => {
+router.put('/updateProduct/:id', authMiddleware, productUpload.single('product_image'), (req, res, next) => {
     if (req.fileValidationError) {
         return res.status(400).json({ message: req.fileValidationError });
     }
@@ -126,7 +126,7 @@ router.put('/updateProduct', authMiddleware, productUpload.single('product_image
 });
 
 // Admin delete Product logic
-router.delete('/deleteProduct', authMiddleware, deleteProduct);
+router.delete('/deleteProduct/:id', authMiddleware, deleteProduct);
 
 // Add a logout route to invalidate token
 router.post('/logout', authMiddleware, logout);

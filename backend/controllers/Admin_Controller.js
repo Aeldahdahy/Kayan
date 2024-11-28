@@ -1077,71 +1077,28 @@ const getProduct = async (req, res) => {
 };
 
 const getProductID = async (req, res) => {
-    const product_id = req.params.id; // Extract the product ID from the request parameters
+    const productId = req.params.id;
 
-    if (!product_id) {
-        return res.status(400).json({ message: 'Product ID is required' });
-    }
+    const query = `
+        SELECT p.product_id, p.product_name, p.product_description, p.product_sale, 
+               p.stock_quantity, p.language, p.sub_category_id, p.brand_id, pi.image AS product_image
+        FROM product p
+        LEFT JOIN product_image pi ON pi.product_id = p.product_id
+        WHERE p.product_id = ?`;
 
-    try {
-        const connection = await db.getConnection();
-        try {
-            // Query to retrieve the product based on the provided product_id
-            const [product] = await connection.query(
-                `SELECT 
-                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
-                    p.sub_category_id, p.brand_id, p.admin_id 
-                 FROM product p WHERE p.product_id = ?`,
-                [product_id]
-            );
-
-            if (product.length === 0) {
-                return res.status(404).json({ message: 'Product not found' });
-            }
-
-            const subCategoryId = product[0].sub_category_id;
-            const brandId = product[0].brand_id;
-
-            // Fetch subcategory and brand details
-            const [subCategory] = await connection.query(
-                'SELECT sub_category_name FROM sub_category WHERE sub_category_id = ?',
-                [subCategoryId]
-            );
-            const [brand] = await connection.query(
-                'SELECT brand_name FROM brand WHERE brand_id = ?',
-                [brandId]
-            );
-
-            if (subCategory.length === 0 || brand.length === 0) {
-                return res.status(404).json({ message: 'Associated subcategory or brand not found' });
-            }
-
-            // Combine product, subcategory, and brand information
-            const responseData = {
-                product_id: product[0].product_id,
-                product_name: product[0].product_name,
-                product_description: product[0].product_description,
-                product_sale: product[0].product_sale,
-                stock_quantity: product[0].stock_quantity,
-                sub_category_id: product[0].sub_category_id,
-                sub_category_name: subCategory[0].sub_category_name, // Add the subcategory name
-                brand_id: product[0].brand_id,
-                brand_name: brand[0].brand_name, // Add the brand name
-                admin_id: product[0].admin_id,
-            };
-
-            res.status(200).json({ message: 'Product retrieved successfully', data: responseData });
-
-        } catch (error) {
-            console.error('Database query error: ', error);
-            res.status(500).json({ message: 'Server error' });
-        } finally {
-            connection.release();
+    db.query(query, [productId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Error fetching product data', error: err });
         }
-    } catch (error) {
-        console.error('Database connection error: ', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+
+        if (result.length > 0) {
+            const product = result[0];
+            res.status(200).json({ product });
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    });
 };
 
 const updateProduct = async (req, res) => {
@@ -1238,69 +1195,60 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-    const { product_id } = req.body;
-
-    if (!product_id) {
-        return res.status(400).json({ message: 'Please provide a valid product_id' });
-    }
+    const { id } = req.params; // product_id from the URL
+    const admin_id = req.user?.admin_id; // Admin ID from the token (or session)
 
     try {
         const connection = await db.getConnection();
+
         try {
-            await connection.beginTransaction();
+            await connection.beginTransaction(); // Start the transaction
 
-            // Check if the product exists
-            const [existingProduct] = await connection.query(
-                'SELECT * FROM product WHERE product_id = ?',
-                [product_id]
-            );
-
-            if (existingProduct.length === 0) {
-                await connection.rollback();
-                return res.status(404).json({ message: 'Product not found' });
-            }
-
-            // Delete associated product images
-            const [deleteImagesResult] = await connection.query(
+            // Delete product from product_image table
+            const [deleteImageResult] = await connection.query(
                 'DELETE FROM product_image WHERE product_id = ?',
-                [product_id]
+                [id]
             );
 
-            if (deleteImagesResult.affectedRows === 0) {
+            // Check if image deletion was successful
+            if (deleteImageResult.affectedRows === 0) {
                 await connection.rollback();
-                return res.status(500).json({ message: 'Error deleting product images' });
+                return res.status(500).json({ message: 'Error deleting product image' });
             }
 
-            // Delete the product record
+            // Delete product from product table
             const [deleteProductResult] = await connection.query(
-                'DELETE FROM product WHERE product_id = ?',
-                [product_id]
+                'DELETE FROM product WHERE product_id = ? AND admin_id = ?',
+                [id, admin_id]
             );
 
+            // Check if the product deletion was successful
             if (deleteProductResult.affectedRows === 0) {
                 await connection.rollback();
                 return res.status(500).json({ message: 'Error deleting product' });
             }
 
-            // Optionally, delete the product image files from the server
-            // You can implement this logic if needed, similar to the logic for deleting the brand logo
-
+            // Commit the transaction after successful deletion
             await connection.commit();
 
-            res.status(200).json({ message: 'Product and associated images deleted successfully' });
+            res.status(200).json({ message: 'Product deleted successfully' });
 
         } catch (error) {
-            await connection.rollback();
+            await connection.rollback(); // Rollback in case of error
             console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
-            connection.release();
+            connection.release(); // Always release the connection back to the pool
         }
+
     } catch (error) {
         console.error('Database connection error: ', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
 
 module.exports = {
     getAdmin,
