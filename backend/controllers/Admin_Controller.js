@@ -166,16 +166,14 @@ const signInAdmin = async (req, res) => {
     }
 };
 
-
-
 //--------------------------------------------------------------------- Brand --------------------------------------------------------------------------------------------------
 
 const createBrand = async (req, res) => {
-    const { brand_name, brand_country } = req.body;
+    const { brand_name, brand_country, language } = req.body;
     const logoFile = req.file; // Get the uploaded file
 
-    if (!brand_name || !brand_country || !logoFile) {
-        return res.status(400).json({ message: 'Please provide all required fields: brand_name, brand_country, and brand_logo' });
+    if (!brand_name || !brand_country || !logoFile || !language) {
+        return res.status(400).json({ message: 'Please provide all required fields: Brand name, Brand country, Brand logo, and language' });
     }
 
     // Generate the logo path (relative for serving as a static file)
@@ -188,8 +186,8 @@ const createBrand = async (req, res) => {
 
             // Insert brand into the table
             const [insertResult] = await connection.query(
-                'INSERT INTO brand (brand_name, brand_country, brand_logo) VALUES (?, ?, ?)',
-                [brand_name, brand_country, brand_logo]
+                'INSERT INTO brand (brand_name, brand_country, brand_logo, language) VALUES (?, ?, ?, ?)',
+                [brand_name, brand_country, brand_logo, language]
             );
 
             if (insertResult.affectedRows === 0) {
@@ -199,7 +197,7 @@ const createBrand = async (req, res) => {
 
             // Retrieve the newly inserted brand
             const [newBrand] = await connection.query(
-                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+                'SELECT brand_id, brand_name, brand_country, brand_logo, language FROM brand WHERE brand_id = ?',
                 [insertResult.insertId]
             );
 
@@ -225,7 +223,7 @@ const getBrand = async (req, res) => {
         try {
             // Query to retrieve all brands from the database
             const [brands] = await connection.query(
-                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand'
+                'SELECT brand_id, brand_name, brand_country, brand_logo, language FROM brand'
             );
 
             if (brands.length === 0) {
@@ -246,7 +244,7 @@ const getBrand = async (req, res) => {
     }
 };
 
-const updateBrand = async (req, res) => {
+const getBrandID = async (req, res) => {
     const brand_id = req.params.id;  // Extract the brand ID from the request parameters
 
     if (!brand_id) {
@@ -258,7 +256,7 @@ const updateBrand = async (req, res) => {
         try {
             // Query to retrieve a single brand based on the provided brand_id
             const [brand] = await connection.query(
-                'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
+                'SELECT brand_id, brand_name, brand_country, brand_logo, language FROM brand WHERE brand_id = ?',
                 [brand_id]
             );
 
@@ -280,72 +278,75 @@ const updateBrand = async (req, res) => {
     }
 };
 
+const updateBrand = async (req, res) => {
+    const { brand_name, brand_country, language } = req.body;
+    const brand_id = req.params.id;
+    const logoFile = req.file; // Get the uploaded file, if any
 
+    if (!brand_id || (!brand_name && !brand_country && !logoFile && !language)) {
+        return res.status(400).json({ message: 'Please provide brand id and at least one field to update' });
+    }
 
-// const updateBrand = async (req, res) => {
-//     const { brand_name, brand_country } = req.body;
-//     const brand_id = req.params.id;
-//     const logoFile = req.file; // Get the uploaded file, if any
+    // Generate the logo path (only if a new file is uploaded)
+    const brand_logo = logoFile ? `/uploads/brands/${logoFile.filename}` : null;
 
-//     if (!brand_id || (!brand_name && !brand_country && !logoFile)) {
-//         return res.status(400).json({ message: 'Please provide brand id and at least one field to update' });
-//     }
+    try {
+        const connection = await db.getConnection();
+        try {
+            let updateFields = [];
+            let updateParams = [];
 
-//     // Generate the logo path (only if a new file is uploaded)
-//     const brand_logo = logoFile ? `/uploads/brands/${logoFile.filename}` : null;
+            if (brand_name) {
+                updateFields.push('brand_name = ?');
+                updateParams.push(brand_name);
+            }
 
-//     try {
-//         const connection = await db.getConnection();
-//         try {
-//             let updateFields = [];
-//             let updateParams = [];
+            if (brand_country) {
+                updateFields.push('brand_country = ?');
+                updateParams.push(brand_country);
+            }
 
-//             if (brand_name) {
-//                 updateFields.push('brand_name = ?');
-//                 updateParams.push(brand_name);
-//             }
+            if (brand_logo) {
+                updateFields.push('brand_logo = ?');
+                updateParams.push(brand_logo);
+            }
 
-//             if (brand_country) {
-//                 updateFields.push('brand_country = ?');
-//                 updateParams.push(brand_country);
-//             }
+            if (language) {
+                updateFields.push('language = ?');
+                updateParams.push(language);
+            }
 
-//             if (brand_logo) {
-//                 updateFields.push('brand_logo = ?');
-//                 updateParams.push(brand_logo);
-//             }
+            updateParams.push(brand_id);
 
-//             updateParams.push(brand_id);
+            const updateQuery = `UPDATE brand 
+                                 SET ${updateFields.join(',')} WHERE brand_id = ?`;
 
-//             const updateQuery = `UPDATE brand 
-//                                  SET ${updateFields.join(',')} WHERE brand_id = ?`;
+            // Execute the update query
+            const [updateResult] = await connection.query(updateQuery, updateParams);
 
-//             // Execute the update query
-//             const [updateResult] = await connection.query(updateQuery, updateParams);
+            if (updateResult.affectedRows === 0) {
+                return res.status(404).json({ message: 'Brand not found or no fields were updated' });
+            }
 
-//             if (updateResult.affectedRows === 0) {
-//                 return res.status(404).json({ message: 'Brand not found or no fields were updated' });
-//             }
+            // Retrieve the updated brand
+            const [updatedBrand] = await connection.query(
+                'SELECT brand_id, brand_name, brand_country, brand_logo, language FROM brand WHERE brand_id = ?',
+                [brand_id]
+            );
 
-//             // Retrieve the updated brand
-//             const [updatedBrand] = await connection.query(
-//                 'SELECT brand_id, brand_name, brand_country, brand_logo FROM brand WHERE brand_id = ?',
-//                 [brand_id]
-//             );
+            res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand[0] });
 
-//             res.status(200).json({ message: 'Brand updated successfully', brand: updatedBrand[0] });
-
-//         } catch (error) {
-//             console.error('Database query error:', error);
-//             res.status(500).json({ message: 'Server error' });
-//         } finally {
-//             connection.release();
-//         }
-//     } catch (error) {
-//         console.error('Database connection error:', error);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// };
+        } catch (error) {
+            console.error('Database query error:', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 const deleteBrand = async (req, res) => {
     const  brand_id  = req.params.id;
@@ -407,83 +408,163 @@ const deleteBrand = async (req, res) => {
 //--------------------------------------------------------------------- Category --------------------------------------------------------------------------------------------------
 
 const createCategory = async (req, res) => {
-    const { categoryName } = req.body;
+    const { category_name, language } = req.body; // Use category_name as sent from the frontend
 
-    if(!categoryName){
-        return res.status(401).json({ message: 'Category name is required!'});
+    if (!category_name || !language) {
+        return res.status(400).json({ message: 'Please provide both category name and language' });
     }
 
     try {
         const connection = await db.getConnection();
         try {
             await connection.beginTransaction();
-            
-            const [categoryData] = await connection.query(
-                'INSERT INTO category(category_name) VALUES(?)',
-                [categoryName]
+
+            // Insert category into the table
+            const [insertResult] = await connection.query(
+                'INSERT INTO category (category_name, language) VALUES (?, ?)',
+                [category_name, language] // Use category_name here
             );
 
-            if (categoryData.affectedRows === 0) {
+            if (insertResult.affectedRows === 0) {
                 await connection.rollback();
-                return res.status(500).json({ message: 'Error creating category' });
+                return res.status(500).json({ message: 'Error inserting category' });
             }
 
+            // Retrieve the newly inserted category
             const [newCategory] = await connection.query(
-                'SELECT category_id, category_name FROM category WHERE category_id = ?',
-                [categoryData.insertId]
+                'SELECT category_id, category_name, language FROM category WHERE category_id = ?',
+                [insertResult.insertId]
             );
 
             await connection.commit();
-            res.status(200).json({ message: 'Category created successfully', category: newCategory[0] });
-
+            res.status(201).json({ message: 'Category created successfully', category: newCategory[0] });
 
         } catch (error) {
             await connection.rollback();
-            console.error(error);
+            console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
-        }finally{
+        } finally {
             connection.release();
         }
     } catch (error) {
-        console.error(error);
+        console.error('Database connection error: ', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-const updateCategory = async (req, res) => {
-    const { category_id, category_name } = req.body;
 
-    if (!category_id || !category_name) {
-        return res.status(400).json({ message: 'Please provide category_id and category_name' });
+const getCategory = async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve all categories from the database
+            const [categories] = await connection.query(
+                'SELECT category_id, category_name, language FROM category'
+            );
+
+            if (categories.length === 0) {
+                return res.status(404).json({ message: 'No categories found' });
+            }
+
+            res.status(200).json({ message: 'Categories retrieved successfully', categories });
+
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const getCategoryID = async (req, res) => {
+    const category_id = req.params.id;  // Extract the category ID from the request parameters
+
+    if (!category_id) {
+        return res.status(400).json({ message: 'Category ID is required' });
     }
 
     try {
         const connection = await db.getConnection();
         try {
-            // Check if the category exists
-            const [existingCategory] = await connection.query(
-                'SELECT category_id FROM category WHERE category_id = ?',
+            // Query to retrieve a single category based on the provided category_id
+            const [category] = await connection.query(
+                'SELECT category_id, category_name, language FROM category WHERE category_id = ?',
                 [category_id]
             );
 
-            if (existingCategory.length === 0) {
+            if (category.length === 0) {
                 return res.status(404).json({ message: 'Category not found' });
             }
 
-            // Update the category
-            const updateQuery = `UPDATE category SET category_name = ? WHERE category_id = ?`;
-            const [updateResult] = await connection.query(updateQuery, [category_name, category_id]);
+            res.status(200).json({ message: 'Category retrieved successfully', category: category[0] });
 
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const updateCategory = async (req, res) => {
+    const { category_name, language } = req.body;
+    const category_id = req.params.id;
+
+    // Log request body for debugging
+    console.log('Received body for update:', req.body);
+    console.log('Category ID:', category_id);
+
+    // Ensure category_id is present, and at least one field is provided to update
+    if (!category_id || (!category_name && !language)) {
+        return res.status(400).json({ message: 'Please provide category id and at least one field to update' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            let updateFields = [];
+            let updateParams = [];
+
+            // Add update fields dynamically based on what is provided
+            if (category_name) {
+                updateFields.push('category_name = ?');
+                updateParams.push(category_name);
+            }
+
+            if (language) {
+                updateFields.push('language = ?');
+                updateParams.push(language);
+            }
+
+            // Append category_id to the end for the WHERE clause
+            updateParams.push(category_id);
+
+            const updateQuery = `UPDATE category 
+                                 SET ${updateFields.join(',')} WHERE category_id = ?`;
+
+            // Execute the update query
+            const [updateResult] = await connection.query(updateQuery, updateParams);
+
+            // If no rows were affected, the category was not found or no updates were made
             if (updateResult.affectedRows === 0) {
-                return res.status(500).json({ message: 'Error updating category' });
+                return res.status(404).json({ message: 'Category not found or no fields were updated' });
             }
 
             // Retrieve the updated category
             const [updatedCategory] = await connection.query(
-                'SELECT category_id, category_name FROM category WHERE category_id = ?',
+                'SELECT category_id, category_name, language FROM category WHERE category_id = ?',
                 [category_id]
             );
 
+            // Return the updated category
             res.status(200).json({ message: 'Category updated successfully', category: updatedCategory[0] });
 
         } catch (error) {
@@ -501,6 +582,10 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     const { category_id } = req.body;
 
+    // Log the received body for debugging
+    console.log('Received body for deletion:', req.body);
+
+    // Ensure category_id is provided
     if (!category_id) {
         return res.status(400).json({ message: 'Please provide a valid category_id' });
     }
@@ -527,6 +612,7 @@ const deleteCategory = async (req, res) => {
                 [category_id]
             );
 
+            // If no rows were affected, the deletion failed
             if (deleteResult.affectedRows === 0) {
                 await connection.rollback();
                 return res.status(500).json({ message: 'Error deleting category' });
@@ -551,102 +637,231 @@ const deleteCategory = async (req, res) => {
 //--------------------------------------------------------------------- Sub-Category -----------------------------------------------------------------------------------------------
 
 const createSubCategory = async (req, res) => {
-    const { sub_category_name, category_id} = req.body;
-    
-    if(!sub_category_name || !category_id){
-        res.status(401).json({ message: 'All fields are reqired!'});
+    const { sub_category_name, category_id, language } = req.body; // Include language
+
+    // Validate if both sub_category_name, category_id, and language are provided
+    if (!sub_category_name || !category_id || !language) {
+        return res.status(400).json({ message: 'All fields (sub_category_name, category_id, language) are required!' });
     }
 
     try {
         const connection = await db.getConnection();
         try {
             await connection.beginTransaction();
-            
+
+            // Insert subcategory into the sub_category table with category_id and language
             const [subCategoryData] = await connection.query(
-                'INSERT INTO sub_category (sub_category_name, category_id) VALUES(?, ?)',
-                [sub_category_name, category_id]
+                'INSERT INTO sub_category (sub_category_name, category_id, language) VALUES(?, ?, ?)',
+                [sub_category_name, category_id, language] // Use sub_category_name, category_id, and language
             );
 
-            if(subCategoryData.affectedRows === 0){
+            if (subCategoryData.affectedRows === 0) {
                 await connection.rollback();
-                return res.status(500).json({ message: 'Error creating sub category' });   
+                return res.status(500).json({ message: 'Error creating sub category' });
             }
 
+            // Retrieve the newly inserted subcategory, including the language field
             const [newSubCategory] = await connection.query(
-                'SELECT sub_category_id, sub_category_name, category_id FROM sub_category WHERE sub_category_id = ?',
+                'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category WHERE sub_category_id = ?',
                 [subCategoryData.insertId]
             );
 
             await connection.commit();
-            res.status(200).json({ message: 'Sub category created successfully', SubCategory: newSubCategory[0] });
-
+            res.status(201).json({ message: 'Sub category created successfully', subCategory: newSubCategory[0] });
 
         } catch (error) {
             await connection.rollback();
-            console.error(error);
+            console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
-        }finally{
+        } finally {
             connection.release();
         }
     } catch (error) {
-        console.error(error);
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const getSubCategory = async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve all subcategories from the database
+            const [subCategories] = await connection.query(
+                'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category'
+            );
+
+            if (subCategories.length === 0) {
+                return res.status(404).json({ message: 'No subcategories found' });
+            }
+
+            // Query to retrieve category names for all category_ids
+            const categoryIds = subCategories.map(subCategory => subCategory.category_id);
+            const [categories] = await connection.query(
+                'SELECT category_id, category_name FROM category WHERE category_id IN (?)',
+                [categoryIds]
+            );
+
+            // Create a mapping of category_id to category_name
+            const categoryMap = categories.reduce((map, category) => {
+                map[category.category_id] = category.category_name;
+                return map;
+            }, {});
+
+            // Add category_name to each subcategory
+            subCategories.forEach(subCategory => {
+                subCategory.category_name = categoryMap[subCategory.category_id] || 'N/A';
+            });
+
+            res.status(200).json({
+                message: 'Subcategories retrieved successfully',
+                subCategories,
+            });
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const getSubCategoryID = async (req, res) => {
+    const sub_category_id = req.params.id;  // Extract the subcategory ID from the request parameters
+
+    if (!sub_category_id) {
+        return res.status(400).json({ message: 'Subcategory ID is required' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve the subcategory based on the provided sub_category_id
+            const [subCategory] = await connection.query(
+                'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category WHERE sub_category_id = ?',
+                [sub_category_id]
+            );
+
+            if (subCategory.length === 0) {
+                return res.status(404).json({ message: 'Subcategory not found' });
+            }
+
+            const category_id = subCategory[0].category_id; // Extract category_id from subcategory
+
+            // Now, use the category_id to fetch the associated category name
+            const [category] = await connection.query(
+                'SELECT category_name FROM category WHERE category_id = ?',
+                [category_id]
+            );
+
+            if (category.length === 0) {
+                return res.status(404).json({ message: 'Associated category not found' });
+            }
+
+            // Combine subcategory and category information
+            const responseData = {
+                sub_category_id: subCategory[0].sub_category_id,
+                sub_category_name: subCategory[0].sub_category_name,
+                category_id: subCategory[0].category_id,
+                category_name: category[0].category_name, // Add the category name
+                language: subCategory[0].language,
+            };
+
+            res.status(200).json({ message: 'Subcategory retrieved successfully', data: responseData });
+
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
 const updateSubCategory = async (req, res) => {
-    const { sub_category_id, sub_category_name, category_id } = req.body;
+    const { sub_category_name, category_id, language } = req.body;
+    const sub_category_id = req.params.id; // Subcategory ID from the URL
 
-    if (!sub_category_id || (!sub_category_name && !category_id)) {
-        return res.status(400).json({ message: 'Please provide sub category id and at least one field to update' });
+    // Log request body and ID for debugging
+    console.log('Received body for update:', req.body);
+    console.log('Subcategory ID:', sub_category_id);
+
+    // Ensure sub_category_id is present and at least one field is provided to update
+    if (!sub_category_id || (!sub_category_name && !category_id && !language)) {
+        return res.status(400).json({ 
+            message: 'Please provide subcategory ID and at least one field to update' 
+        });
     }
 
     try {
         const connection = await db.getConnection();
         try {
-            // Start a transaction
-            await connection.beginTransaction();
-
             let updateFields = [];
             let updateParams = [];
 
+            // If category_id is provided, validate its existence
+            if (category_id) {
+                const [category] = await connection.query(
+                    'SELECT category_id FROM category WHERE category_id = ?',
+                    [category_id]
+                );
+
+                if (category.length === 0) {
+                    return res.status(404).json({ message: 'Category ID not found' });
+                }
+
+                // Add category_id to the update fields
+                updateFields.push('category_id = ?');
+                updateParams.push(category_id);
+            }
+
+            // If sub_category_name is provided, update it
             if (sub_category_name) {
                 updateFields.push('sub_category_name = ?');
                 updateParams.push(sub_category_name);
             }
 
-            if (category_id) {
-                updateFields.push('category_id = ?');
-                updateParams.push(category_id);
+            // If language is provided, update it
+            if (language) {
+                updateFields.push('language = ?');
+                updateParams.push(language);
             }
 
+            // Append sub_category_id to the end for the WHERE clause
             updateParams.push(sub_category_id);
 
+            // Construct the update query dynamically
             const updateQuery = `UPDATE sub_category 
-                                 SET ${updateFields.join(',')} WHERE sub_category_id = ?`;
+                                 SET ${updateFields.join(', ')} 
+                                 WHERE sub_category_id = ?`;
 
             // Execute the update query
             const [updateResult] = await connection.query(updateQuery, updateParams);
 
+            // If no rows were affected, the subcategory was not found or no updates were made
             if (updateResult.affectedRows === 0) {
-                await connection.rollback();
-                return res.status(404).json({ message: 'Sub-category not found or no fields were updated' });
+                return res.status(404).json({ message: 'Subcategory not found or no fields were updated' });
             }
 
-            // Retrieve the updated sub-category
+            // Retrieve the updated subcategory
             const [updatedSubCategory] = await connection.query(
-                'SELECT sub_category_id, sub_category_name, category_id FROM sub_category WHERE sub_category_id = ?',
+                'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category WHERE sub_category_id = ?',
                 [sub_category_id]
             );
 
-            // Commit the transaction
-            await connection.commit();
-
-            res.status(200).json({ message: 'Sub-category updated successfully', sub_category: updatedSubCategory[0] });
+            // Return the updated subcategory
+            res.status(200).json({ 
+                message: 'Subcategory updated successfully', 
+                subCategory: updatedSubCategory[0] 
+            });
 
         } catch (error) {
-            // Rollback the transaction in case of error
-            await connection.rollback();
             console.error('Database query error:', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
@@ -659,8 +874,12 @@ const updateSubCategory = async (req, res) => {
 };
 
 const deleteSubCategory = async (req, res) => {
-    const { sub_category_id } = req.body;
+    const { sub_category_id } = req.body; // Subcategory ID from the request body
 
+    // Log the received body for debugging
+    console.log('Received body for deletion:', req.body);
+
+    // Ensure sub_category_id is provided
     if (!sub_category_id) {
         return res.status(400).json({ message: 'Please provide a valid sub_category_id' });
     }
@@ -670,7 +889,7 @@ const deleteSubCategory = async (req, res) => {
         try {
             await connection.beginTransaction();
 
-            // Check if the sub-category exists
+            // Check if the subcategory exists
             const [existingSubCategory] = await connection.query(
                 'SELECT sub_category_name FROM sub_category WHERE sub_category_id = ?',
                 [sub_category_id]
@@ -678,22 +897,23 @@ const deleteSubCategory = async (req, res) => {
 
             if (existingSubCategory.length === 0) {
                 await connection.rollback();
-                return res.status(404).json({ message: 'Sub-category not found' });
+                return res.status(404).json({ message: 'Subcategory not found' });
             }
 
-            // Delete the sub-category record
+            // Delete the subcategory record
             const [deleteResult] = await connection.query(
                 'DELETE FROM sub_category WHERE sub_category_id = ?',
                 [sub_category_id]
             );
 
+            // If no rows were affected, the deletion failed
             if (deleteResult.affectedRows === 0) {
                 await connection.rollback();
-                return res.status(500).json({ message: 'Error deleting sub-category' });
+                return res.status(500).json({ message: 'Error deleting subcategory' });
             }
 
             await connection.commit();
-            res.status(200).json({ message: 'Sub-category deleted successfully' });
+            res.status(200).json({ message: 'Subcategory deleted successfully' });
 
         } catch (error) {
             await connection.rollback();
@@ -711,65 +931,208 @@ const deleteSubCategory = async (req, res) => {
 //--------------------------------------------------------------------- Product -----------------------------------------------------------------------------------------------
 
 const createProduct = async (req, res) => {
-    const { product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id } = req.body;
+    const { product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id } = req.body;
     const productImage = req.file; // The uploaded file (assuming multer saved it in req.file)
-    const admin_id = req.user?.admin_id; // Admin ID comes from the token
+    const admin_id = req.user?.admin_id; // Admin ID comes from the token (or session)
 
-    // Log to debug the issue
-    // console.log('admin_id from token:', admin_id);
+    // Log for debugging (optional)
+    console.log('Admin ID from token:', admin_id);
 
-    if (!product_name || !product_description || !product_sale || !stock_quantity || !sub_category_id || !brand_id || !productImage || !admin_id) {
-        return res.status(400).json({ message: 'Please provide all required fields: product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id, product_image, and admin_id' });
+    // Check if all required fields are provided
+    if (!product_name || !product_description || !product_sale || !stock_quantity || !sub_category_id || !brand_id || !productImage || !admin_id || !language) {
+        return res.status(400).json({ message: 'Please provide all required fields: product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, product_image, and admin_id' });
     }
 
     // Generate the product image path (relative for serving as a static file)
-    const product_image_path = `/uploads/products/${productImage.filename}`;
+    const product_image_path = `${productImage.filename}`; // Save the relative path
+
 
     try {
         const connection = await db.getConnection();
         try {
-            await connection.beginTransaction();
+            await connection.beginTransaction(); // Start the transaction
 
-            // Insert product into the product table
+            // Insert the new product into the 'product' table
             const [insertProductResult] = await connection.query(
-                'INSERT INTO product (product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id, admin_id]
+                'INSERT INTO product (product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, admin_id]
             );
 
+            // Check if the insert was successful
             if (insertProductResult.affectedRows === 0) {
                 await connection.rollback();
                 return res.status(500).json({ message: 'Error inserting product' });
             }
 
+            // Get the ID of the newly inserted product
             const newProductId = insertProductResult.insertId;
 
-            // Insert product image into the product_image table
+            // Insert the product image into the 'product_image' table
             const [insertImageResult] = await connection.query(
                 'INSERT INTO product_image (image, product_id) VALUES (?, ?)',
                 [product_image_path, newProductId]
             );
 
+            // Check if the image insertion was successful
             if (insertImageResult.affectedRows === 0) {
                 await connection.rollback();
                 return res.status(500).json({ message: 'Error inserting product image' });
             }
 
-            // Retrieve the newly inserted product along with the image
+            // Retrieve the newly inserted product along with the product image
             const [newProduct] = await connection.query(
                 `SELECT 
                     p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
-                    p.sub_category_id, p.brand_id, p.admin_id, pi.image_id, pi.image AS product_image 
-                 FROM product p 
-                 LEFT JOIN product_image pi ON p.product_id = pi.product_id 
-                 WHERE p.product_id = ?`,
+                    p.language, p.sub_category_id, p.brand_id, p.admin_id, pi.image_id, pi.image AS product_image 
+                    FROM product p 
+                    LEFT JOIN product_image pi ON p.product_id = pi.product_id 
+                    WHERE p.product_id = ?`,
                 [newProductId]
             );
 
+            // Commit the transaction after everything is successful
             await connection.commit();
+
+            // Return the newly created product along with a success message
             res.status(201).json({ message: 'Product created successfully', product: newProduct[0] });
 
         } catch (error) {
-            await connection.rollback();
+            await connection.rollback(); // Rollback in case of error
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release(); // Always release the connection back to the pool
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const getProduct = async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve all products along with the product image
+            const [products] = await connection.query(
+                `SELECT 
+                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, p.language, 
+                    p.sub_category_id, p.brand_id, p.admin_id, 
+                    pi.image AS product_image  -- Get the image from the product_image table
+                 FROM product p
+                 LEFT JOIN product_image pi ON p.product_id = pi.product_id`  // Left join to get the image
+            );
+
+            if (products.length === 0) {
+                return res.status(404).json({ message: 'No products found' });
+            }
+
+            // Extract all subcategory_ids and brand_ids from the products
+            const subCategoryIds = products.map(product => product.sub_category_id);
+            const brandIds = products.map(product => product.brand_id);
+
+            // Fetch subcategory and brand details
+            const [subCategories] = await connection.query(
+                'SELECT sub_category_id, sub_category_name FROM sub_category WHERE sub_category_id IN (?)',
+                [subCategoryIds]
+            );
+            const [brands] = await connection.query(
+                'SELECT brand_id, brand_name FROM brand WHERE brand_id IN (?)',
+                [brandIds]
+            );
+
+            // Create mappings for subcategory and brand
+            const subCategoryMap = subCategories.reduce((map, subCategory) => {
+                map[subCategory.sub_category_id] = subCategory.sub_category_name;
+                return map;
+            }, {});
+
+            const brandMap = brands.reduce((map, brand) => {
+                map[brand.brand_id] = brand.brand_name;
+                return map;
+            }, {});
+
+            // Add subcategory_name, brand_name, and image URL to each product
+            products.forEach(product => {
+                product.sub_category_name = subCategoryMap[product.sub_category_id] || 'N/A';
+                product.brand_name = brandMap[product.brand_id] || 'N/A';
+                // Ensure image URL is correctly formatted
+                product.product_image = product.product_image ? `/uploads/products/${product.product_image}` : '/path/to/default-image.jpg';
+            });
+
+            res.status(200).json({
+                message: 'Products retrieved successfully',
+                products,
+            });
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const getProductID = async (req, res) => {
+    const product_id = req.params.id; // Extract the product ID from the request parameters
+
+    if (!product_id) {
+        return res.status(400).json({ message: 'Product ID is required' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve the product based on the provided product_id
+            const [product] = await connection.query(
+                `SELECT 
+                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
+                    p.sub_category_id, p.brand_id, p.admin_id 
+                 FROM product p WHERE p.product_id = ?`,
+                [product_id]
+            );
+
+            if (product.length === 0) {
+                return res.status(404).json({ message: 'Product not found' });
+            }
+
+            const subCategoryId = product[0].sub_category_id;
+            const brandId = product[0].brand_id;
+
+            // Fetch subcategory and brand details
+            const [subCategory] = await connection.query(
+                'SELECT sub_category_name FROM sub_category WHERE sub_category_id = ?',
+                [subCategoryId]
+            );
+            const [brand] = await connection.query(
+                'SELECT brand_name FROM brand WHERE brand_id = ?',
+                [brandId]
+            );
+
+            if (subCategory.length === 0 || brand.length === 0) {
+                return res.status(404).json({ message: 'Associated subcategory or brand not found' });
+            }
+
+            // Combine product, subcategory, and brand information
+            const responseData = {
+                product_id: product[0].product_id,
+                product_name: product[0].product_name,
+                product_description: product[0].product_description,
+                product_sale: product[0].product_sale,
+                stock_quantity: product[0].stock_quantity,
+                sub_category_id: product[0].sub_category_id,
+                sub_category_name: subCategory[0].sub_category_name, // Add the subcategory name
+                brand_id: product[0].brand_id,
+                brand_name: brand[0].brand_name, // Add the brand name
+                admin_id: product[0].admin_id,
+            };
+
+            res.status(200).json({ message: 'Product retrieved successfully', data: responseData });
+
+        } catch (error) {
             console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
@@ -939,23 +1302,28 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-
-
 module.exports = {
     getAdmin,
     createAdmin,
     signInAdmin,
     createBrand,
     getBrand,
+    getBrandID,
     updateBrand,
     deleteBrand,
     createCategory,
+    getCategory,
+    getSubCategory,
+    getCategoryID,
     updateCategory,
     deleteCategory,
     createSubCategory,
+    getSubCategoryID,
     updateSubCategory,
     deleteSubCategory,
     createProduct,
+    getProduct,
+    getProductID,
     updateProduct,
     deleteProduct,
 };

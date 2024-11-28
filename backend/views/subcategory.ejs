@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+
+<div class="header">
+    <h1 id="page-title" data-translate="pageTitleSubCategory">Manage Subcategories</h1>
+</div>
+
+<div class="container">
+    <form id="subcategoryForm">
+        <h2 id="form-title" data-translate="formTitleSubCategory">Create or Update Subcategory</h2>
+        <input type="hidden" id="subcategoryId">
+        
+        <input type="text" id="subcategoryName" placeholder="Subcategory Name" required data-translate="subcategoryNamePlaceholder">
+        
+        <select id="categoryName" required data-translate="selectCategory">
+            <option value="" disabled selected data-translate="selectCategoryOption">Select Category</option>
+        </select>
+        
+        <select id="LangId" required data-translate="selectLang">
+            <option value="" disabled selected data-translate="selectLangOption">Select Language</option>
+            <option value="en" data-translate="en">English</option>
+            <option value="ar" data-translate="ar">Arabic</option>
+        </select>
+        
+        <button type="submit" id="save-button" data-translate="saveButtonSubCategory">Save Sub Category</button>
+    </form>
+    
+    <h2 id="subcategories-title" data-translate="subcategoriesTitle">All Subcategories</h2>
+    <table>
+        <thead>
+            <tr>
+                <th id="id-column" data-translate="idColumn">ID</th>
+                <th id="name-column" data-translate="nameColumn">Name</th>
+                <th id="category-column" data-translate="categoryColumn">Category</th>
+                <th id="language-column" data-translate="languageColumn">Language</th>
+                <th id="actions-column" data-translate="actionsColumn">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="subcategoryList"></tbody>
+    </table>
+    <a href="/dashboard" class="back-btn btn" id="back-button" data-translate="backButton">Back</a>
+</div>
+
+
+<%- include('partials/footer') %>

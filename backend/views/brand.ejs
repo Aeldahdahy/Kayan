@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<div class="header">
+    <h1 id="page-title" data-translate="pageTitleBrands">Manage Brands</h1>
+</div>
+
+<div class="container">
+    <form id="brandForm">
+        <h2 id="form-title" data-translate="formTitleBrands">Create or Update Brand</h2>
+        <input type="hidden" id="brandId">
+        
+        <input type="text" id="brandName" placeholder="Brand Name" required data-translate="brandNamePlaceholder">
+        
+        <input type="text" id="brandCountry" placeholder="Brand Country" required data-translate="brandCountryPlaceholder">
+        
+        <input type="file" id="brandLogo">
+        <img id="brandLogoPreview" src="" alt="Brand Logo Preview" style="display: none; width: 100px;">
+        
+        <select id="LangId" required data-translate="selectLang">
+            <option value="" disabled selected data-translate="selectLangOption">Select Language</option>
+            <option value="en" data-translate="en">English</option>
+            <option value="ar" data-translate="ar">Arabic</option>
+        </select>
+        
+        <button type="submit" id="save-button" data-translate="saveButtonBrands">Save Brand</button>
+    </form>
+
+    <h2 id="brands-title" data-translate="brandsTitle">All Brands</h2>
+    
+    <table id="brand-list">
+        <thead>
+            <tr>
+                <th id="id-column" data-translate="idColumn">ID</th>
+                <th id="name-column" data-translate="nameColumn">Name</th>
+                <th id="country-column" data-translate="countryColumn">Country</th>
+                <th id="logo-column" data-translate="logoColumn">Logo</th>
+                <th id="language-column" data-translate="languageColumn">Language</th>
+                <th id="actions-column" data-translate="actionsColumn">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="brandList"></tbody>
+    </table>
+
+    <a href="/dashboard" class="back-btn btn" id="back-button" data-translate="backButton">Back</a>
+</div>
+
+<script>
+    
+</script>
+
+<%- include('partials/footer') %>

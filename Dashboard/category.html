@@ -7,150 +7,315 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Language toggle buttons -->
     <div class="language-toggle">
         <button id="en-btn">English</button>
         <button id="ar-btn">العربية</button>
     </div>
+    
+    <!-- Page Header -->
     <div class="header">
         <h1 id="page-title">Manage Categories</h1>
     </div>
+    
+    <!-- Category Form -->
     <div class="container">
         <form id="categoryForm">
             <h2 id="form-title">Create or Update Category</h2>
             <input type="hidden" id="categoryId">
             <input type="text" id="categoryName" placeholder="Category Name" required>
+            <select id="LangId" required>
+                <option value="" id="select-Lang">Select Language</option>
+                <option value="en" id="select-en">English</option>
+                <option value="ar" id="select-ar">Arabic</option>
+            </select>            
             <button type="submit" id="save-button">Save Category</button>
         </form>
+        
         <h2 id="categories-title">All Categories</h2>
-        <table>
+        <table id="category-list">
             <thead>
                 <tr>
                     <th id="id-column">ID</th>
                     <th id="name-column">Name</th>
+                    <th id="language-column">Language</th>
                     <th id="actions-column">Actions</th>
                 </tr>
             </thead>
-            <tbody id="categoryList">
-                <!-- Dynamic content -->
-            </tbody>
+            <tbody id="categoryList"></tbody>
         </table>
         <a href="dashboard.html" class="back-btn btn" id="back-button">Back</a>
     </div>
+
     <script>
-        const API_BASE = "http://localhost:3000/api";
-
-            const translations = {
-                en: {
-                    pageTitle: "Manage Categories",
-                    formTitle: "Create or Update Category",
-                    categoryNamePlaceholder: "Category Name",
-                    saveButton: "Save Category",
-                    categoriesTitle: "All Categories",
-                    idColumn: "ID",
-                    nameColumn: "Name",
-                    actionsColumn: "Actions",
-                    editButton: "Edit",
-                    deleteButton: "Delete",
-                    backButton: "Back"
-                },
-                ar: {
-                    pageTitle: "إدارة الفئات",
-                    formTitle: "إنشاء أو تحديث الفئة",
-                    categoryNamePlaceholder: "اسم الفئة",
-                    saveButton: "حفظ الفئة",
-                    categoriesTitle: "جميع الفئات",
-                    idColumn: "الرقم التعريفي",
-                    nameColumn: "الاسم",
-                    actionsColumn: "الإجراءات",
-                    editButton: "تعديل",
-                    deleteButton: "حذف",
-                    backButton: "رجوع"
-                }
-            };
-
-            const pageTitle = document.getElementById("page-title");
-            const formTitle = document.getElementById("form-title");
-        const categoryName = document.getElementById("categoryName");
-            const saveButton = document.getElementById("save-button");
-            const categoriesTitle = document.getElementById("categories-title");
-            const idColumn = document.getElementById("id-column");
-            const nameColumn = document.getElementById("name-column");
-            const actionsColumn = document.getElementById("actions-column");
-            const backButton = document.getElementById("back-button");
-
-            const langButtons = document.querySelectorAll(".language-toggle button");
-
-            function applyTranslations(lang) {
-                pageTitle.textContent = translations[lang].pageTitle;
-                formTitle.textContent = translations[lang].formTitle;
-                categoryName.placeholder = translations[lang].categoryNamePlaceholder;
-                saveButton.textContent = translations[lang].saveButton;
-                categoriesTitle.textContent = translations[lang].categoriesTitle;
-                idColumn.textContent = translations[lang].idColumn;
-                nameColumn.textContent = translations[lang].nameColumn;
-                actionsColumn.textContent = translations[lang].actionsColumn;
-                backButton.textContent = translations[lang].backButton;
-
-                // Save selected language to localStorage
-                localStorage.setItem("selectedLanguage", lang);
-                fetchCategories(); // Refresh categories for translated action buttons
+        const API_BASE = "http://localhost:2000/public";
+        
+        const translations = {
+            en: {
+                pageTitle: "Manage Categories",
+                formTitle: "Create or Update Category",
+                categoryNamePlaceholder: "Category Name",
+                selectLang: "Select Language",
+                saveButton: "Save Category",
+                categoriesTitle: "All Categories",
+                idColumn: "ID",
+                nameColumn: "Name",
+                languageColumn: "Language",
+                actionsColumn: "Actions",
+                editButton: "Edit",
+                deleteButton: "Delete",
+                backButton: "Back"
+            },
+            ar: {
+                pageTitle: "إدارة الفئات",
+                formTitle: "إنشاء أو تحديث الفئة",
+                categoryNamePlaceholder: "اسم الفئة",
+                selectLang: "اختر اللغة",
+                saveButton: "حفظ الفئة",
+                categoriesTitle: "جميع الفئات",
+                idColumn: "الرقم التعريفي",
+                nameColumn: "الاسم",
+                languageColumn: "اللغة",
+                actionsColumn: "الإجراءات",
+                editButton: "تعديل",
+                deleteButton: "حذف",
+                backButton: "رجوع"
             }
+        };
 
-            // Retrieve saved language from localStorage or default to 'en'
-            const savedLanguage = localStorage.getItem("selectedLanguage") || "en";
-            applyTranslations(savedLanguage);
+        const pageTitle = document.getElementById("page-title");
+        const formTitle = document.getElementById("form-title");
+        const categoryName = document.getElementById("categoryName");
+        const saveButton = document.getElementById("save-button");
+        const categoriesTitle = document.getElementById("categories-title");
+        const idColumn = document.getElementById("id-column");
+        const nameColumn = document.getElementById("name-column");
+        const languageColumn = document.getElementById("language-column");
+        const backButton = document.getElementById("back-button");
+        const categoryForm = document.getElementById('categoryForm');
+        const categoryId = document.getElementById('categoryId');
+        const selectLang = document.getElementById('LangId');
 
-            // Add event listeners to toggle buttons
-            langButtons.forEach(button => {
-                button.addEventListener("click", () => {
-                    const lang = button.id.split("-")[0];
-                    applyTranslations(lang);
-                });
-            });
+        const langButtons = document.querySelectorAll(".language-toggle button");
 
-        async function fetchCategories() {
-            const res = await fetch(`${API_BASE}/categories`);
-            const categories = await res.json();
-            categoryList.innerHTML = categories.map(category => `
-                <tr>
-                    <td>${category.id}</td>
-                    <td>${category.name}</td>
-                    <td>
-                        <button onclick="editCategory(${category.id})">${translations[savedLanguage].editButton}</button>
-                        <button onclick="deleteCategory(${category.id})">${translations[savedLanguage].deleteButton}</button>
-                    </td>
-                </tr>
-            `).join("");
+        // Apply translations based on selected language
+        function applyTranslations(lang) {
+            pageTitle.textContent = translations[lang].pageTitle;
+            formTitle.textContent = translations[lang].formTitle;
+            categoryName.placeholder = translations[lang].categoryNamePlaceholder;
+            saveButton.textContent = translations[lang].saveButton;
+            categoriesTitle.textContent = translations[lang].categoriesTitle;
+            idColumn.textContent = translations[lang].idColumn;
+            nameColumn.textContent = translations[lang].nameColumn;
+            languageColumn.textContent = translations[lang].languageColumn;
+            backButton.textContent = translations[lang].backButton;
+
+            // Save selected language to localStorage
+            localStorage.setItem("selectedLanguage", lang);
+            fetchCategories(); // Refresh categories for translated action buttons
         }
 
-        categoryForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const data = { name: categoryName.value };
-            const method = categoryId.value ? "PUT" : "POST";
-            const url = categoryId.value ? `${API_BASE}/categories/${categoryId.value}` : `${API_BASE}/categories`;
-            await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+        // Retrieve saved language from localStorage or default to 'en'
+        const savedLanguage = localStorage.getItem("selectedLanguage") || "en";
+        applyTranslations(savedLanguage);
+
+        // Add event listeners to toggle buttons
+        langButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const lang = button.id.split("-")[0];
+                applyTranslations(lang);
             });
-            categoryForm.reset();
-            categoryId.value = "";
-            fetchCategories();
         });
 
-        async function editCategory(id) {
-            const res = await fetch(`${API_BASE}/categories/${id}`);
-            const category = await res.json();
-            categoryId.value = category.id;
-            categoryName.value = category.name;
+        // Fetch categories from the server
+        async function fetchCategories() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    alert("Please log in to view the categories.");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                const res = await fetch(`${API_BASE}/getCategory`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    throw new Error('Failed to fetch categories');
+                }
+
+                const data = await res.json();
+
+                if (data.message && data.categories) {
+                    const categoryList = document.getElementById('categoryList');
+                    categoryList.innerHTML = data.categories
+                        .map(
+                            category => `
+                            <tr>
+                                <td>${category.category_id}</td>
+                                <td>${category.category_name}</td>
+                                <td>${category.language || 'N/A'}</td>
+                                <td>
+                                    <button onclick="editCategory(${category.category_id})">${translations[savedLanguage].editButton}</button>
+                                    <button onclick="deleteCategory(${category.category_id})">${translations[savedLanguage].deleteButton}</button>
+                                </td>
+                            </tr>
+                        `
+                        )
+                        .join('');
+                } else {
+                    console.error("Categories data not found in the response", data);
+                    alert("Failed to load categories.");
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                alert('Error fetching categories.');
+            }
         }
 
+      // Edit category logic (populate form with existing data)
+async function editCategory(id) {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        alert("Please log in to edit the category.");
+        window.location.href = "index.html";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/getCategoryID/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch category data.");
+        }
+
+        const category = await res.json();
+
+        if (category) {
+            // Populate the fields with fetched data
+            categoryId.value = category.category.category_id; // Set category ID in hidden input
+            categoryName.value = category.category.category_name; // Set category name in input field
+            selectLang.value = category.category.language; // Set language in select field
+            formTitle.textContent = translations[savedLanguage].formTitle; // Adjust form title based on language
+            saveButton.textContent = translations[savedLanguage].saveButton; // Adjust save button text based on language
+        } else {
+            alert("Category not found.");
+        }
+    } catch (error) {
+        console.error("Error fetching category data:", error);
+        alert("Error fetching category data.");
+    }
+}
+
+// Add or update category logic
+categoryForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        alert("Please log in to proceed.");
+        window.location.href = "index.html";
+        return;
+    }
+
+    const categoryIdVal = categoryId.value; // Retrieve category ID value
+    const categoryNameVal = categoryName.value.trim(); // Get trimmed value for category name
+    const categoryLang = selectLang.value; // Get the selected language
+
+    console.log('Category Name:', categoryNameVal); 
+    console.log('Category Language:', categoryLang);
+
+    // Check if both fields are not empty
+    if (!categoryNameVal || !categoryLang) {
+        alert("Please provide both category name and language.");
+        return; // Prevent form submission if either field is empty
+    }
+
+    // Determine the HTTP method and endpoint based on whether we're updating or creating
+    const method = categoryIdVal ? 'PUT' : 'POST';  // If categoryIdVal exists, we're updating, else creating
+    const endpoint = categoryIdVal ? `${API_BASE}/updateCategory/${categoryIdVal}` : `${API_BASE}/createCategory`;
+
+    const categoryData = {
+        category_name: categoryNameVal, // Use category_name instead of categoryName
+        language: categoryLang
+    };
+
+    console.log('Category data:', categoryData);
+    console.log('Endpoint:', endpoint);
+
+    try {
+        const res = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(categoryData)
+        });
+
+        const response = await res.json();
+
+        if (!res.ok) {
+            // Log detailed error information for debugging
+            console.error('API Error:', response);
+            alert(response.message || `Failed to ${categoryIdVal ? 'update' : 'create'} the category.`);
+        } else {
+            alert(response.message || `Category ${categoryIdVal ? 'updated' : 'created'} successfully.`);
+            fetchCategories(); // Refresh the categories list
+            categoryForm.reset(); // Reset form after submission
+            categoryId.value = ''; // Clear the hidden category ID after the update
+        }
+    } catch (error) {
+        console.error('Error during form submission:', error);
+        alert('An error occurred while saving the category.');
+    }
+});
+
+        // Delete category logic
         async function deleteCategory(id) {
-            await fetch(`${API_BASE}/categories/${id}`, { method: "DELETE" });
-            fetchCategories();
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert("Please log in to delete the category.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            if (confirm("Are you sure you want to delete this category?")) {
+                try {
+                    const res = await fetch(`${API_BASE}/deleteCategory`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ category_id: id }), // Send category_id in the request body
+                    });
+
+                    const response = await res.json();
+                    if (res.ok) {
+                        alert(response.message || "Category deleted successfully.");
+                        fetchCategories(); // This assumes you have a function to refresh the categories list
+                    } else {
+                        alert(response.message || "Failed to delete the category.");
+                    }
+                } catch (error) {
+                    console.error('Error deleting category:', error);
+                    alert('Error deleting category.');
+                }
+            }
         }
 
-        fetchCategories();
     </script>
 </body>
 </html>

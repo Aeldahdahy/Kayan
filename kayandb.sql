@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 22, 2024 at 12:42 AM
+-- Generation Time: Nov 29, 2024 at 12:56 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -51,23 +51,24 @@ CREATE TABLE `brand` (
   `brand_id` int(11) NOT NULL,
   `brand_name` varchar(255) NOT NULL,
   `brand_country` varchar(255) NOT NULL,
-  `brand_logo` varchar(255) NOT NULL
+  `brand_logo` varchar(255) NOT NULL,
+  `language` enum('en','ar') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `brand`
 --
 
-INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`) VALUES
-(1, 'Burger', 'Oman', '/uploads/brands/1732041712042-Android Emulator - Pixel_8_Pro_API_35_5554 8_25_2024 9_06_23 PM.png'),
-(2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1732043444277-Dina Farms OD - Google Docs - Google Chrome 11_16_2024 1_54_38 PM.png'),
-(3, 'Elba', 'Oman', '/uploads/brands/1732043480229-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_47_21 PM.png'),
-(4, 'Elica', 'Oman', '/uploads/brands/1732043519110-Products - Google Chrome 11_16_2024 2_00_22 PM.png'),
-(5, 'Lieheir', 'Oman', '/uploads/brands/1732043565190-_Wi-Fi 10_20_2024 6_50_48 PM.png'),
-(6, 'Fresh', 'Oman', '/uploads/brands/1732043583718-_Wi-Fi 10_27_2024 6_56_10 PM.png'),
-(7, 'LDYLUIM', 'Oman', '/uploads/brands/1732043613837-Marketing in dynamic Envirnment 2023 - Dina Farms - Final Version - (I) Marketing In a Dynamic - Studocu - Google Chrome 11_17_2024 3_36_36 PM.png'),
-(8, 'Lamborghini', 'Oman', '/uploads/brands/1732043654927-System BAS DASHBORD - web - Google Chrome 9_2_2024 9_44_46 PM.png'),
-(9, 'Kumtel', 'Oman', '/uploads/brands/1732043748634-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_49_08 PM.png');
+INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`, `language`) VALUES
+(1, 'Burger', 'Oman', '/uploads/brands/1732041712042-Android Emulator - Pixel_8_Pro_API_35_5554 8_25_2024 9_06_23 PM.png', 'en'),
+(2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1732043444277-Dina Farms OD - Google Docs - Google Chrome 11_16_2024 1_54_38 PM.png', 'en'),
+(3, 'Elba', 'Oman', '/uploads/brands/1732043480229-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_47_21 PM.png', 'en'),
+(4, 'Elica', 'Oman', '/uploads/brands/1732043519110-Products - Google Chrome 11_16_2024 2_00_22 PM.png', 'en'),
+(5, 'Lieheir', 'Oman', '/uploads/brands/1732043565190-_Wi-Fi 10_20_2024 6_50_48 PM.png', 'en'),
+(6, 'Fresh', 'Oman', '/uploads/brands/1732043583718-_Wi-Fi 10_27_2024 6_56_10 PM.png', 'en'),
+(7, 'LDYLUIM', 'Oman', '/uploads/brands/1732043613837-Marketing in dynamic Envirnment 2023 - Dina Farms - Final Version - (I) Marketing In a Dynamic - Studocu - Google Chrome 11_17_2024 3_36_36 PM.png', 'en'),
+(8, 'Lamborghini', 'Oman', '/uploads/brands/1732043654927-System BAS DASHBORD - web - Google Chrome 9_2_2024 9_44_46 PM.png', 'en'),
+(9, 'Kumtel', 'Oman', '/uploads/brands/1732043748634-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_49_08 PM.png', 'en');
 
 -- --------------------------------------------------------
 
@@ -77,20 +78,21 @@ INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`) VA
 
 CREATE TABLE `category` (
   `category_id` int(11) NOT NULL,
-  `category_name` varchar(255) NOT NULL
+  `category_name` varchar(255) NOT NULL,
+  `language` enum('en','ar') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `category`
 --
 
-INSERT INTO `category` (`category_id`, `category_name`) VALUES
-(1, 'Furniture'),
-(2, 'Wardrobe'),
-(3, 'Home appliances'),
-(4, 'Bathroom units'),
-(5, 'Sinks & MiXers'),
-(6, 'Tubes');
+INSERT INTO `category` (`category_id`, `category_name`, `language`) VALUES
+(1, 'Furniture', 'en'),
+(2, 'Wardrobe', 'en'),
+(3, 'Home appliances', 'en'),
+(4, 'Bathroom units', 'en'),
+(5, 'Sinks & MiXers', 'en'),
+(6, 'Tubes', 'en');
 
 -- --------------------------------------------------------
 
@@ -117,10 +119,18 @@ CREATE TABLE `product` (
   `product_description` varchar(255) NOT NULL,
   `product_sale` decimal(5,2) NOT NULL,
   `stock_quantity` int(11) NOT NULL,
+  `language` enum('en','ar') NOT NULL,
   `admin_id` int(11) NOT NULL,
   `sub_category_id` int(11) NOT NULL,
   `brand_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `product_sale`, `stock_quantity`, `language`, `admin_id`, `sub_category_id`, `brand_id`) VALUES
+(8, 'Awesome T-Shirt', 'A comfortable cotton t-shirt', 19.99, 100, 'en', 12, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -134,6 +144,13 @@ CREATE TABLE `product_image` (
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `product_image`
+--
+
+INSERT INTO `product_image` (`image_id`, `image`, `product_id`) VALUES
+(7, '1732832490041-chapter one OD (1).pdf - Personal - Microsoft​ Edge 11_15_2024 6_51_50 PM.png', 8);
+
 -- --------------------------------------------------------
 
 --
@@ -143,6 +160,7 @@ CREATE TABLE `product_image` (
 CREATE TABLE `sub_category` (
   `sub_category_id` int(11) NOT NULL,
   `sub_category_name` varchar(255) NOT NULL,
+  `language` enum('en','ar') NOT NULL,
   `category_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -150,23 +168,23 @@ CREATE TABLE `sub_category` (
 -- Dumping data for table `sub_category`
 --
 
-INSERT INTO `sub_category` (`sub_category_id`, `sub_category_name`, `category_id`) VALUES
-(1, 'Dining rooms', 1),
-(2, 'Bed rooms', 1),
-(3, 'Guest rooms', 1),
-(4, 'Living rooms', 1),
-(5, 'Kids rooms', 1),
-(6, 'Decorative', 2),
-(7, 'Cupboard', 2),
-(8, 'Open shelves', 2),
-(9, 'Hobs', 3),
-(10, 'Dishwashers', 3),
-(11, 'Cooker hood', 3),
-(12, 'Ovens', 3),
-(13, 'Washing machines', 3),
-(14, 'Refrigerators', 3),
-(15, 'Coffee machines', 3),
-(16, 'Microwaves', 3);
+INSERT INTO `sub_category` (`sub_category_id`, `sub_category_name`, `language`, `category_id`) VALUES
+(1, 'Dining rooms', 'en', 1),
+(2, 'Bed rooms', 'en', 1),
+(3, 'Guest rooms', 'en', 1),
+(4, 'Living rooms', 'en', 1),
+(5, 'Kids rooms', 'en', 1),
+(6, 'Decorative', 'en', 2),
+(7, 'Cupboard', 'en', 2),
+(8, 'Open shelves', 'en', 2),
+(9, 'Hobs', 'en', 3),
+(10, 'Dishwashers', 'en', 3),
+(11, 'Cooker hood', 'en', 3),
+(12, 'Ovens', 'en', 3),
+(13, 'Washing machines', 'en', 3),
+(14, 'Refrigerators', 'en', 3),
+(15, 'Coffee machines', 'en', 3),
+(16, 'Microwaves', 'en', 3);
 
 --
 -- Indexes for dumped tables
@@ -234,13 +252,13 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `contact`
@@ -252,19 +270,19 @@ ALTER TABLE `contact`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `product_image`
 --
 ALTER TABLE `product_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `sub_category`
 --
 ALTER TABLE `sub_category`
-  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- Constraints for dumped tables

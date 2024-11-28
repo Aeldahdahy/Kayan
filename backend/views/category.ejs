@@ -1,0 +1,42 @@
+<%- include('partials/header') %>
+
+<div class="header">
+    <h1 id="page-title" data-translate="pageTitleCategory">Manage Categories</h1>
+</div>
+
+<!-- Category Form -->
+<div class="container">
+    <form id="categoryForm">
+        <h2 id="form-title" data-translate="formTitleCategory">Create or Update Category</h2>
+        <input type="hidden" id="categoryId">
+        
+        <!-- Category Name -->
+        <input type="text" id="categoryName" placeholder="Category Name" required data-translate="categoryNamePlaceholder">
+        
+        <!-- Language Selection Dropdown -->
+        <select id="LangId" required data-translate="selectLang">
+            <option value="" disabled selected data-translate="selectLangOption">Select Language</option>
+            <option value="en" data-translate="en">English</option>
+            <option value="ar" data-translate="ar">Arabic</option>
+        </select>
+        
+        <button type="submit" id="save-button" data-translate="saveButtonCategory">Save Category</button>
+    </form>
+    
+    <h2 id="categories-title" data-translate="categoriesTitleCategory">All Categories</h2>
+    <table id="category-list">
+        <thead>
+            <tr>
+                <th id="id-column" data-translate="idColumn">ID</th>
+                <th id="name-column" data-translate="nameColumn">Name</th>
+                <th id="language-column" data-translate="languageColumn">Language</th>
+                <th id="actions-column" data-translate="actionsColumn">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="categoryList"></tbody>
+    </table>
+    <a href="/dashboard" class="back-btn btn" id="back-button" data-translate="backButton">Back</a>
+</div>
+
+
+<%- include('partials/footer') %>

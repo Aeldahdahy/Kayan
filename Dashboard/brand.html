@@ -21,6 +21,12 @@
             <input type="text" id="brandName" placeholder="Brand Name" required>
             <input type="text" id="brandCountry" placeholder="Brand Country" required>
             <input type="file" id="brandLogo">
+            <img id="brandLogoPreview" src="" alt="Brand Logo Preview" style="display: none; width: 100px;">
+            <select id="LangId" required>
+                <option value="" id="select-Lang">Select Language</option>
+                <option value="en" id="select-en">English</option>
+                <option value="ar" id="select-ar">Arabic</option>
+            </select>            
             <button type="submit" id="save-button">Save Brand</button>
         </form>
         <h2 id="brands-title">All Brands</h2>
@@ -31,11 +37,11 @@
                     <th id="name-column">Name</th>
                     <th id="country-column">Country</th>
                     <th id="logo-column">Logo</th>
+                    <th id="language-column">language</th>
                     <th id="actions-column">Actions</th>
                 </tr>
             </thead>
             <tbody id="brandList">
-                <!-- Dynamic content -->
             </tbody>
         </table>
         <a href="dashboard.html" class="back-btn btn" id="back-button">Back</a>
@@ -43,10 +49,7 @@
     <script>
             const API_BASE = "http://localhost:2000/public";
 
-            // document.addEventListener("DOMContentLoaded", () => {
-            //     fetchBrands();  // Fetch and display brands when the page is ready
-            // }); 
-
+           
 
             const translations = {
                 en: {
@@ -54,12 +57,14 @@
                     formTitle: "Create or Update Brand",
                     brandNamePlaceholder: "Brand Name",
                     brandCountryPlaceholder: "Brand Country",
+                    selectLang: "Select Language",
                     saveButton: "Save Brand",
                     brandsTitle: "All Brands",
                     idColumn: "ID",
                     nameColumn: "Name",
                     countryColumn: "Country",
                     logoColumn: "Logo",
+                    languageColumn:'Language',
                     actionsColumn: "Actions",
                     editButton: "Edit",
                     deleteButton: "Delete",
@@ -70,12 +75,14 @@
                     formTitle: "إنشاء أو تحديث علامة تجارية",
                     brandNamePlaceholder: "اسم العلامة التجارية",
                     brandCountryPlaceholder: "بلد العلامة التجارية",
+                    selectLang: "اختراللغة",
                     saveButton: "حفظ العلامة التجارية",
                     brandsTitle: "جميع العلامات التجارية",
                     idColumn: "الرقم التعريفي",
                     nameColumn: "الاسم",
                     countryColumn: "البلد",
                     logoColumn: "الشعار",
+                    languageColumn:'اللغة',
                     actionsColumn: "الإجراءات",
                     editButton: "تعديل",
                     deleteButton: "حذف",
@@ -97,6 +104,9 @@
             const backButton = document.getElementById("back-button");
             const brandForm = document.getElementById('brandForm');
             const brandId = document.getElementById('brandId');
+            const brandLogo = document.getElementById('brandLogo');
+            const selectLang = document.getElementById('select-Lang');
+            const languageColumn = document.getElementById('language-column');
 
             const langButtons = document.querySelectorAll(".language-toggle button");
 
@@ -113,6 +123,11 @@
                 logoColumn.textContent = translations[lang].logoColumn;
                 actionsColumn.textContent = translations[lang].actionsColumn;
                 backButton.textContent = translations[lang].backButton;
+                selectLang.textContent = translations[lang].selectLang;
+                languageColumn.textContent = translations[lang].languageColumn;
+
+
+
 
                 // Save selected language to localStorage
                 localStorage.setItem("selectedLanguage", lang);
@@ -133,48 +148,49 @@
            
             async function fetchBrands() {
                 try {
-                    // Retrieve the token from localStorage
-                    const token = localStorage.getItem('authToken');  // This should be the same key you used to store the token
+                    const token = localStorage.getItem('authToken');
 
-                    // Check if token exists
                     if (!token) {
                         alert("Please log in to view the brands.");
-                        window.location.href = "index.html";  // Redirect to login page if token is not found
+                        window.location.href = "index.html";
                         return;
                     }
-                    
-                    // Replace 'API_BASE' with the actual base URL of your API
+
                     const res = await fetch(`${API_BASE}/getBrand`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,  // Add token in the header
-                        }
+                            'Authorization': `Bearer ${token}`,
+                        },
                     });
-                    
-                    // Check if the response is successful (status 200)
+
                     if (!res.ok) {
                         throw new Error('Failed to fetch brands');
                     }
-                    
+
                     const data = await res.json();
-                    
-                    // Check if brands data is returned
+
                     if (data.message && data.brands) {
-                        const brandList = document.getElementById('brand-list');  // Assuming you have a table with id 'brand-list'
-                        // console.log('kk');
-                        brandList.innerHTML = data.brands.map(brand => `
-                        <tr>
-                            <td>${brand.brand_id}</td>
-                            <td>${brand.brand_name}</td>
-                            <td>${brand.brand_country}</td>
-                            <td><img src="../backend/${brand.brand_logo}" alt="${brand.brand_name}" width="50"></td>
-                            <td>
-                                <button onclick="editBrand(${brand.brand_id})">${translations[savedLanguage].editButton}</button>
-                                <button onclick="deleteBrand(${brand.brand_id})">${translations[savedLanguage].deleteButton}</button>
-                                </td>
+                        const brandList = document.getElementById('brandList'); // Refers to tbody
+                        brandList.innerHTML = data.brands
+                            .map(
+                                brand => `
+                                <tr>
+                                    <td>${brand.brand_id}</td>
+                                    <td>${brand.brand_name}</td>
+                                    <td>${brand.brand_country}</td>
+                                    <td>
+                                        <img src="../backend/${brand.brand_logo}" alt="${brand.brand_name}" width="50">
+                                    </td>
+                                    <td>${brand.language || 'N/A'}</td>
+                                    <td>
+                                        <button onclick="editBrand(${brand.brand_id})">${translations[savedLanguage].editButton}</button>
+                                        <button onclick="deleteBrand(${brand.brand_id})">${translations[savedLanguage].deleteButton}</button>
+                                    </td>
                                 </tr>
-                                `).join("");
+                            `
+                            )
+                            .join('');
                     } else {
                         console.error("Brands data not found in the response", data);
                         alert("Failed to load brands.");
@@ -185,146 +201,142 @@
                 }
             }
 
+            // Add or update brand logic
+            document.getElementById('brandForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
+                if (!token) {
+                    alert("Please log in to proceed.");
+                    window.location.href = "index.html"; // Redirect to login page if token is not found
+                    return;
+                }
+                const brandId = document.getElementById('brandId').value; // Determine if it's an update
+                const brandName = document.getElementById('brandName').value;
+                const brandCountry = document.getElementById('brandCountry').value;
+                const brandLang = document.getElementById('LangId').value;
+                const brandLogo = document.getElementById('brandLogo').files[0];
+                
+                const formData = new FormData();
+                formData.append('brand_name', brandName);
+                formData.append('brand_country', brandCountry);
+                if (brandLogo) {
+                    formData.append('brand_logo', brandLogo);
+                }
+                if (brandLang !== '') {
+                    formData.append('language', brandLang); // Append the selected language
+                }
+                const method = brandId ? 'PUT' : 'POST';
+                const endpoint = brandId ? `${API_BASE}/updateBrand/${brandId}` : `${API_BASE}/createBrand`;
+                try {
+                    const res = await fetch(endpoint, {
+                        method: method,
+                        headers: {
+                            'Authorization': `Bearer ${token}`, // Include the token
+                            // Content-Type is automatically set when using FormData
+                        },
+                        body: formData,
+                    });
+                    const response = await res.json();
+                    if (res.ok) {
+                        alert(response.message || `Brand ${brandId ? 'updated' : 'created'} successfully.`);
+                        // Reset the form and reload the brands
+                        document.getElementById('brandForm').reset();
+                        document.getElementById('brandLogoPreview').style.display = 'none'; // Hide the logo preview
+                        fetchBrands();
+                    } else {
+                        console.error('Error response:', response);
+                        alert(response.message || `Failed to ${brandId ? 'update' : 'create'} the brand.`);
+                    }
+                } catch (error) {
+                    console.error('Error during form submission:', error);
+                    alert('An error occurred while saving the brand.');
+                }
+            });
 
-       // Add or update brand logic
-brandForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+            // Edit brand logic (populate the form with brand data)
+            async function editBrand(id) {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    alert("Please log in to edit the brand.");
+                    window.location.href = "index.html";
+                    return;
+                }
 
-    // Retrieve the token from localStorage
-    const token = localStorage.getItem('authToken');  // This should be the same key you used to store the token
+                try {
+                    const res = await fetch(`${API_BASE}/getBrandID/${id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
 
-    if (!token) {
-        alert("Please log in to add or edit a brand.");
-        window.location.href = "index.html";  // Redirect to login page if token is not found
-        return;
-    }
+                    if (!res.ok) {
+                        throw new Error("Failed to fetch brand data.");
+                    }
 
-    const formData = new FormData();
-    formData.append("brand_name", brandName.value);  // Assuming brandName is a valid input field
-    formData.append("brand_country", brandCountry.value);  // Assuming brandCountry is a valid input field
-    if (brandLogo.files[0]) {
-        formData.append("brand_logo", brandLogo.files[0]);  // Assuming brandLogo is a file input
-    }
+                    const brand = await res.json();
 
-    const method = brandId.value ? "PUT" : "POST";  // Use PUT for update and POST for create
-    const url = brandId.value ? `${API_BASE}/createBrand/${brandId.value}` : `${API_BASE}/createBrand`;
+                    if (brand && brand.brand.brand_name && brand.brand.brand_country && brand.brand.language) {
+                        document.getElementById('brandId').value = brand.brand.brand_id;
+                        document.getElementById('brandName').value = brand.brand.brand_name;
+                        document.getElementById('brandCountry').value = brand.brand.brand_country;
+                        document.getElementById('LangId').value = brand.brand.language;
 
-    try {
-        const res = await fetch(url, {
-            method: method,
-            headers: {
-                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
-            },
-            body: formData
-        });
 
-        if (!res.ok) {
-            throw new Error(`Failed to ${method === "POST" ? "create" : "update"} brand`);
-        }
-
-        brandForm.reset();
-        brandId.value = "";  // Reset the form fields
-
-        // Reload the brands list after successful creation/update
-        fetchBrands();
-
-    } catch (error) {
-        console.error('Error while saving brand:', error);
-        alert(`Error while saving brand: ${error.message}`);
-    }
-});
-
-// Edit brand logic (populate the form with brand data)
-async function editBrand(id) {
-    const token = localStorage.getItem('authToken');  // Get token from localStorage
-
-    if (!token) {
-        alert("Please log in to edit the brand.");
-        window.location.href = "index.html";  // Redirect to login if token is not found
-        return;
-    }
-
-    try {
-        // Fetch the brand details
-        const res = await fetch(`${API_BASE}/updateBrand/${id}`, {
-            method: 'GET',  // Get the brand data before editing
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+                        if (brand.brand.brand_logo) {
+                            const logoPath = `../backend/${brand.brand.brand_logo}`;
+                            const previewElement = document.getElementById('brandLogoPreview');
+                            previewElement.src = logoPath;
+                            previewElement.style.display = 'block';
+                        }
+                    } else {
+                        alert("Brand data is incomplete or missing.");
+                    }
+                } catch (error) {
+                    console.error("Error editing brand:", error);
+                    alert("Error fetching brand data.");
+                }
             }
-        });
 
-        if (!res.ok) {
-            throw new Error("Failed to fetch brand data.");
-        }
+            // Delete brand logic
+            async function deleteBrand(id) {
+                if (!confirm("Are you sure you want to delete this brand?")) return;
 
-        const brand = await res.json();
+                const token = localStorage.getItem('authToken');  // Get token from localStorage
 
-        // Log the brand data to the console to inspect its structure
-        console.log(brand);  // Add this line to check the structure of the response
+                if (!token) {
+                    alert("Please log in to delete the brand.");
+                    window.location.href = "index.html";  // Redirect to login if token is not found
+                    return;
+                }
 
-        // Check if brand data exists
-        if (brand && brand.brand_name && brand.brand_country) {
-            // Populate the form with the fetched brand data
-            brandId.value = brand.brand_id || '';
-            brandName.value = brand.brand_name || '';
-            brandCountry.value = brand.brand_country || '';
-            
-            // Optionally set the image preview if available
-            // if (brand.brand_logo) {
-            //     brandLogoPreview.src = `../backend/${brand.brand_logo}`;
-            // } else {
-            //     // Set a default image if no logo is available
-            //     brandLogoPreview.src = '../path/to/default-logo.png';
-            // }
-        } else {
-            alert("Brand data is incomplete or missing.");
-        }
+                try {
+                    const res = await fetch(`${API_BASE}/deleteBrand/${id}`, {  // Use URL parameter for the id
+                        method: "DELETE",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+                        }
+                    });
 
-    } catch (error) {
-        console.error("Error editing brand:", error);
-        alert("Error fetching brand data.");
-    }
-}
+                    if (!res.ok) {
+                        throw new Error('Failed to delete brand');
+                    }
 
-
-
-// Delete brand logic
-async function deleteBrand(id) {
-    const token = localStorage.getItem('authToken');  // Get token from localStorage
-
-    if (!token) {
-        alert("Please log in to delete the brand.");
-        window.location.href = "index.html";  // Redirect to login if token is not found
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/deleteBrand/${id}`, {  // Use URL parameter for the id
-            method: "DELETE",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // Add the token in the Authorization header
+                    // Reload the brands list after successful deletion
+                    fetchBrands();
+                } catch (error) {
+                    console.error('Error deleting brand:', error);
+                    alert('Error deleting brand');
+                }
             }
-        });
 
-        if (!res.ok) {
-            throw new Error('Failed to delete brand');
-        }
-
-        // Reload the brands list after successful deletion
-        fetchBrands();
-    } catch (error) {
-        console.error('Error deleting brand:', error);
-        alert('Error deleting brand');
-    }
-}
-
-// Fetch brands when the page loads
-document.addEventListener("DOMContentLoaded", fetchBrands);
+            // Fetch brands when the page loads
+            document.addEventListener("DOMContentLoaded", fetchBrands);
 
 
-        fetchBrands();
+            fetchBrands();
     </script>
 </body>
 </html>

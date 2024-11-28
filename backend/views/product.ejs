@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+
+<div class="header">
+    <h1 id="page-title" data-translate="pageTitleProducts">Manage Products</h1>
+</div>
+
+<div class="container">
+    <form id="productForm">
+        <h2 id="form-title" data-translate="formTitleProducts">Create or Update Product</h2>
+        <input type="hidden" id="productId">
+        
+        <input type="text" id="productName" placeholder="Product Name" required data-translate="productNamePlaceholder">
+        
+        <textarea id="productDescription" placeholder="Product Description" rows="4" required data-translate="productDescriptionPlaceholder"></textarea>
+        
+        <input type="number" id="productSale" placeholder="Product Sale Price" required data-translate="productSalePricePlaceholder">
+        
+        <input type="number" id="stockQuantity" placeholder="Stock Quantity" required data-translate="stockQuantityPlaceholder">
+        
+        <select id="LangId" required data-translate="selectLang">
+            <option value="" disabled selected data-translate="selectLangOption">Select Language</option>
+            <option value="en" data-translate="en">English</option>
+            <option value="ar" data-translate="ar">Arabic</option>
+        </select>
+
+        <select id="subcategoryId" required >
+            <option value="" disabled selected data-translate="selectSubcategory">Select Subcategory</option>
+        </select>
+        
+        <select id="brandId" required>
+            <option value="" disabled selected data-translate="selectBrand">Select Brand</option>
+        </select>
+        
+        <input type="file" id="productImage">
+        
+        <button type="submit" id="save-button" data-translate="saveButtonProducts">Save Product</button>
+    </form>
+
+    <h2 id="products-title" data-translate="productsTitle">All Products</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th id="id-column" data-translate="idColumn">ID</th>
+                <th id="name-column" data-translate="nameColumn">Name</th>
+                <th id="description-column" data-translate="descriptionColumn">Description</th>
+                <th id="sale-price-column" data-translate="salePriceColumn">Sale Price</th>
+                <th id="stock-column" data-translate="stockColumn">Stock</th>
+                <th id="stock-column" data-translate="languageColumn">Language</th>
+                <th id="subcategory-column" data-translate="subcategoryColumn">Subcategory</th>
+                <th id="brand-column" data-translate="brandColumn">Brand</th>
+                <th id="image-column" data-translate="imageColumn">Image</th>
+                <th id="actions-column" data-translate="actionsColumn">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="productList">
+            <!-- Dynamic content -->
+        </tbody>
+    </table>
+
+    <a href="/dashboard" class="back-btn btn" id="back-button" data-translate="backButton">Back</a>
+</div>
+
+
+
+<%- include('partials/footer') %>
