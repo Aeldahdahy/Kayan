@@ -203,7 +203,6 @@ function updatePageTitles() {
     buttonTitleElement.textContent = translations[lang][formTitleKey];
 }
 
-
 // Helper function to check authentication
 function checkAuthToken() {
     const token = localStorage.getItem('authToken');
@@ -340,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    
     // Execute the asynchronous function to fetch and display brands
     window.fetchBrands = async function() {
         const token = localStorage.getItem('authToken');
@@ -1032,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td>${product.product_id}</td>
                             <td>${product.product_name}</td>
                             <td>${product.product_description || 'N/A'}</td>
-                            <td>${product.product_sale || 'N/A'}</td>
+                            <td>${product.product_sale || 'N/A'}%</td>
                             <td>${product.stock_quantity || 'N/A'}</td>
                             <td>${product.language || 'N/A'}</td>
                             <td>${product.sub_category_name || 'N/A'}</td>
@@ -1041,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <img src="${product.product_image}" alt="${product.product_name}" width="50" style="object-fit: cover;">
                             </td>
                             <td>
-                                <button onclick="editProduct(${product.product_id})">
+                               <button onclick="editProduct(${product.product_id})">
                                     ${translations[savedLanguage].editButton}
                                 </button>
                                 <button onclick="deleteProduct(${product.product_id})">
@@ -1062,258 +1060,328 @@ document.addEventListener('DOMContentLoaded', () => {
             // alert(translations[savedLanguage].productFetchError || 'Error fetching products.');
         }
     };
-    
-       
+        
     if(document.getElementById('productList')){
         fetchProduct();
     }
 
     const productForm = document.getElementById('productForm');
-if (productForm) {
-    // Fetch brands and subcategories once the page loads
-    window.fetchSubCategory = async function () {
-        const token = localStorage.getItem('authToken');
-        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
+    if (productForm) {
+        // Fetch brands and subcategories once the page loads
+        window.fetchSubCategory = async function () {
+            const token = localStorage.getItem('authToken');
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
 
+            if (!token) {
+                alert(translations[savedLanguage].loginError); // Language-aware message
+                window.location.href = "/"; // Redirect to login page if token is not found
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/getSubCategory`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) throw new Error('Failed to fetch sub category');
+                const data = await res.json();
+
+                if (data.message && data.subCategories) {
+                    const subcategorySelect = document.getElementById('subcategoryId');
+                    subcategorySelect.innerHTML = `<option value="" disabled selected>Select Subcategory</option>`; // Reset dropdown
+                    data.subCategories.forEach(subCategory => {
+                        subcategorySelect.innerHTML += `<option value="${subCategory.sub_category_id}">${subCategory.sub_category_name}</option>`;
+                    });
+                } else {
+                    console.error("Subcategories data not found in the response", data);
+                    alert("Failed to load subcategories.");
+                }
+            } catch (error) {
+                console.error('Error fetching subcategories:', error);
+                alert('Error fetching subcategories.');
+            }
+        };
+
+        window.fetchBrands = async function () {
+            const token = localStorage.getItem('authToken');
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
+
+            if (!token) {
+                alert(translations[savedLanguage].loginError); // Language-aware message
+                window.location.href = "/"; // Redirect to login page if token is not found
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/getBrand`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!res.ok) {
+                    throw new Error(translations[savedLanguage].brandFetchError || 'Failed to fetch brands'); // Use translations
+                }
+
+                const data = await res.json();
+
+                if (data.message && data.brands) {
+                    const brandSelect = document.getElementById('brandId');
+                    brandSelect.innerHTML = `<option value="" disabled selected>Select Brand</option>`; // Reset dropdown
+                    data.brands.forEach(brand => {
+                        brandSelect.innerHTML += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
+                    });
+                } else {
+                    console.error("Brands data not found in the response", data);
+                    alert(translations[savedLanguage].brandFetchError || 'Failed to load brands');
+                }
+            } catch (error) {
+                console.error('Error fetching brands:', error);
+                alert(translations[savedLanguage].brandFetchError || 'Error fetching brands');
+            }
+        };
+
+        // Fetch brands and subcategories when the page loads
+        fetchBrands();
+        fetchSubCategory();
+
+        // Product form submission handler
+        productForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert(translations[window.selectedLanguage].loginError);
+                window.location.href = "/";
+                return;
+            }
+
+            const productId = document.getElementById('productId').value;
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const productSale = document.getElementById('productSale').value;
+            const stockQuantity = document.getElementById('stockQuantity').value;
+            const LangId = document.getElementById('LangId').value;
+            const subcategoryId = document.getElementById('subcategoryId').value;
+            const brandId = document.getElementById('brandId').value;
+            const productImage = document.getElementById('productImage').files[0];
+
+            const formData = new FormData();
+            formData.append('product_name', productName);
+            formData.append('product_description', productDescription);
+            formData.append('product_sale', productSale);
+            formData.append('stock_quantity', stockQuantity);
+            formData.append('language', LangId);
+            formData.append('sub_category_id', subcategoryId);
+            formData.append('brand_id', brandId);
+            
+            if (productImage) {
+                formData.append('product_image', productImage); // Attach the product image
+            }
+
+            const method = productId ? 'PUT' : 'POST'; // Decide method based on existence of productId
+            const endpoint = productId ? `${API_BASE}/updateProduct/${productId}` : `${API_BASE}/createProduct`;
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: formData,
+                });
+                const response = await res.json();
+
+                if (res.ok) {
+                    alert(response.message || translations[window.selectedLanguage][productId ? 'productUpdated' : 'productCreated']);
+                    fetchProduct(); // Reload the list of products (assuming this function exists)
+                    
+                    // Reset the form and reload the products
+                    document.getElementById('productForm').reset();
+                    document.getElementById('productImagePreview').style.display = 'none'; // Hide the image preview
+                } else {
+                    console.error('Error response:', response);
+                    alert(response.message || translations[window.selectedLanguage].productSaveFailed);
+                }
+            } catch (error) {
+                console.error('Error during form submission:', error);
+                alert(translations[window.selectedLanguage].productSaveError);
+            }
+        });
+    }
+
+
+    window.populateDropdown = async function(endpoint, dropdownId, defaultOptionText, selectedValue = null) {
+        const token = localStorage.getItem('authToken');
+        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+        
         if (!token) {
-            alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/"; // Redirect to login page if token is not found
+            alert(translations[savedLanguage].loginError);
+            window.location.href = "/";
             return;
         }
-
+    
         try {
-            const res = await fetch(`${API_BASE}/getSubCategory`, {
+            const res = await fetch(`${API_BASE}/${endpoint}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
             });
-
-            if (!res.ok) throw new Error('Failed to fetch sub category');
+    
+            if (!res.ok) throw new Error(`Failed to fetch data from ${endpoint}`);
             const data = await res.json();
-
-            if (data.message && data.subCategories) {
-                const subcategorySelect = document.getElementById('subcategoryId');
-                subcategorySelect.innerHTML = `<option value="" disabled selected>Select Subcategory</option>`; // Reset dropdown
-                data.subCategories.forEach(subCategory => {
-                    subcategorySelect.innerHTML += `<option value="${subCategory.sub_category_id}">${subCategory.sub_category_name}</option>`;
-                });
+    
+            // console.log("Dropdown Data for", dropdownId, ":", data);
+    
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = `<option value="" disabled selected>Select Brand</option>`;
+    
+            let dropdownData = [];
+            if (endpoint === "getSubCategory") {
+                dropdownData = data.subCategories; // Adjust based on your API structure
+            } else if (endpoint === "getBrand") {
+                dropdownData = data.brands; // Adjust based on your API structure
             } else {
-                console.error("Subcategories data not found in the response", data);
-                alert("Failed to load subcategories.");
+                throw new Error(`Unexpected endpoint: ${endpoint}`);
+            }
+    
+            // Validate dropdownData is an array
+            if (!Array.isArray(dropdownData)) {
+                throw new Error("Expected an array but received something else.");
+            }
+    
+            // Populate options
+            dropdownData.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.sub_category_id || item.brand_id; // Match API field for ID
+                option.textContent = item.sub_category_name || item.brand_name; // Match API field for name
+                dropdown.appendChild(option);
+            });
+    
+            // Pre-select value if provided
+            if (selectedValue) {
+                dropdown.value = selectedValue;
             }
         } catch (error) {
-            console.error('Error fetching subcategories:', error);
-            alert('Error fetching subcategories.');
+            console.error(`Error populating ${dropdownId}:`, error);
+            alert(`Failed to populate ${dropdownId}.`);
         }
     };
+    
 
-    window.fetchBrands = async function () {
+    window.editProduct = async function(id) {
         const token = localStorage.getItem('authToken');
-        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
-
+        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    
         if (!token) {
-            alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/"; // Redirect to login page if token is not found
+            alert(translations[savedLanguage].loginError);
+            window.location.href = "/";
             return;
         }
-
+    
+        
         try {
-            const res = await fetch(`${API_BASE}/getBrand`, {
+            const res = await fetch(`${API_BASE}/getProductID/${id}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
             });
-
+            
             if (!res.ok) {
-                throw new Error(translations[savedLanguage].brandFetchError || 'Failed to fetch brands'); // Use translations
+                throw new Error("Failed to fetch product data.");
             }
-
-            const data = await res.json();
-
-            if (data.message && data.brands) {
-                const brandSelect = document.getElementById('brandId');
-                brandSelect.innerHTML = `<option value="" disabled selected>Select Brand</option>`; // Reset dropdown
-                data.brands.forEach(brand => {
-                    brandSelect.innerHTML += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
-                });
+            
+            const product = await res.json();
+            // console.log(
+            //     product.product.product_id,
+            //     product.product.product_name,
+            //     product.product.product_description,
+            //     product.product.product_sale,
+            //     product.product.stock_quantity,
+            //     product.product.language,
+            //     product.product.product_image,
+            //     product.product.sub_category_id,
+            //     product.product.brand_id
+            // );
+            
+            if (product) {
+             
+                // Populate inputs
+                document.getElementById('productId').value = product.product.product_id || '';
+                document.getElementById('productName').value = product.product.product_name || '';
+                document.getElementById('productDescription').value = product.product.product_description || '';
+                document.getElementById('productSale').value = product.product.product_sale || '';
+                document.getElementById('stockQuantity').value = product.product.stock_quantity || '';
+                document.getElementById('LangId').value = product.product.language || '';
+    
+                // Handle image preview
+                if (product.product.product_image) {
+                    // Prepend the base URL to the image path if necessary
+                    const product_image = `/uploads/products/${product.product.product_image}`;
+                    const previewElement = document.getElementById('productImagePreview');
+                    previewElement.src = product_image; // Set the image preview source
+                    previewElement.style.display = 'block'; // Ensure the preview is visible
+                }
+    
+                // Populate and pre-select subcategory
+                await populateDropdown('getSubCategory', 'subcategoryId', translations[savedLanguage].selectCategoryOption, product.product.sub_category_id);
+    
+                // Populate and pre-select brand
+                await populateDropdown('getBrand', 'brandId', translations[savedLanguage].selectBrandOption, product.product.brand_id);
+    
+                document.getElementById('productName').focus();
             } else {
-                console.error("Brands data not found in the response", data);
-                alert(translations[savedLanguage].brandFetchError || 'Failed to load brands');
+                alert("Product not found.");
             }
         } catch (error) {
-            console.error('Error fetching brands:', error);
-            alert(translations[savedLanguage].brandFetchError || 'Error fetching brands');
+            console.error("Error fetching product data:", error);
+            alert("Error fetching product data.");
         }
     };
-
-    // Fetch brands and subcategories when the page loads
-    fetchBrands();
-    fetchSubCategory();
-
-    // Product form submission handler
-    productForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+    
+  
+    window.deleteProduct = async function(id) {
         const token = localStorage.getItem('authToken');
+        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
+
         if (!token) {
-            alert(translations[window.selectedLanguage].loginError);
+            alert(translations[savedLanguage].loginError); // Language-aware message
             window.location.href = "/";
             return;
         }
 
-        const productId = document.getElementById('productId').value;
-        const productName = document.getElementById('productName').value;
-        const productDescription = document.getElementById('productDescription').value;
-        const productSale = document.getElementById('productSale').value;
-        const stockQuantity = document.getElementById('stockQuantity').value;
-        const LangId = document.getElementById('LangId').value;
-        const subcategoryId = document.getElementById('subcategoryId').value;
-        const brandId = document.getElementById('brandId').value;
-        const productImage = document.getElementById('productImage').files[0];
+        if (confirm("Are you sure you want to delete this product?")) {
+            try {
+                const res = await fetch(`${API_BASE}/deleteProduct/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    }
+                });
 
-        const formData = new FormData();
-        formData.append('product_name', productName);
-        formData.append('product_description', productDescription);
-        formData.append('product_sale', productSale);
-        formData.append('stock_quantity', stockQuantity);
-        formData.append('language', LangId);
-        formData.append('sub_category_id', subcategoryId);
-        formData.append('brand_id', brandId);
-        
-        if (productImage) {
-            formData.append('product_image', productImage); // Attach the product image
-        }
+                const response = await res.json();
 
-        const method = productId ? 'PUT' : 'POST'; // Decide method based on existence of productId
-        const endpoint = productId ? `${API_BASE}/updateProduct/${productId}` : `${API_BASE}/createProduct`;
-
-        try {
-            const res = await fetch(endpoint, {
-                method: method,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
-            const response = await res.json();
-
-            if (res.ok) {
-                alert(response.message || translations[window.selectedLanguage][productId ? 'productUpdated' : 'productCreated']);
-                fetchProduct(); // Reload the list of products (assuming this function exists)
-                
-                // Reset the form and reload the products
-                // document.getElementById('productForm').reset();
-                // document.getElementById('productImagePreview').style.display = 'none'; // Hide the image preview
-            } else {
-                console.error('Error response:', response);
-                alert(response.message || translations[window.selectedLanguage].productSaveFailed);
-            }
-        } catch (error) {
-            console.error('Error during form submission:', error);
-            alert(translations[window.selectedLanguage].productSaveError);
-        }
-    });
-}
-
-
-window.editProduct = async function(id) {
-    const token = localStorage.getItem('authToken');
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-
-    if (!token) {
-        alert(translations[savedLanguage].loginError);
-        window.location.href = "/";
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/getProductID/${id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) {
-            throw new Error("Failed to fetch product data.");
-        }
-
-        const product = await res.json();
-        console.log(product);
-
-        if (product && product.product) {
-            const { product_id, product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, product_image } = product.product;
-
-            document.getElementById('productId').value = product_id;
-            document.getElementById('productName').value = product_name;
-            document.getElementById('productDescription').value = product_description;
-            document.getElementById('productSale').value = product_sale;
-            document.getElementById('stockQuantity').value = stock_quantity;
-            document.getElementById('LangId').value = language;
-            document.getElementById('subcategoryId').value = sub_category_id;
-            document.getElementById('brandId').value = brand_id;
-
-            // Handle product image
-            if (product_image) {
-                const imagePath = `${API_BASE}${product_image}`; // Make sure this URL is correct
-                const previewElement = document.getElementById('productImagePreview');
-                previewElement.src = imagePath;
-                previewElement.style.display = 'block'; // Show the image preview
-            } else {
-                // If no image, you can set a default image or hide the preview element
-                document.getElementById('productImagePreview').style.display = 'none';
-            }
-        } else {
-            alert("Product data is incomplete or missing.");
-        }
-    } catch (error) {
-        console.error("Error editing product:", error);
-        alert("Error fetching product data.");
-    }
-};
-
-
-
-
-    
-window.deleteProduct = async function(id) {
-    const token = localStorage.getItem('authToken');
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
-
-    if (!token) {
-        alert(translations[savedLanguage].loginError); // Language-aware message
-        window.location.href = "/";
-        return;
-    }
-
-    if (confirm("Are you sure you want to delete this product?")) {
-        try {
-            const res = await fetch(`${API_BASE}/deleteProduct/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                if (res.ok) {
+                    alert(response.message || "Product deleted successfully.");
+                    fetchProduct(); // Refresh the product list after successful deletion
+                } else {
+                    alert(response.message || "Failed to delete the product.");
                 }
-            });
-
-            const response = await res.json();
-
-            if (res.ok) {
-                alert(response.message || "Product deleted successfully.");
-                fetchProduct(); // Refresh the product list after successful deletion
-            } else {
-                alert(response.message || "Failed to delete the product.");
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                alert('Error deleting product.');
             }
-        } catch (error) {
-            console.error('Error deleting product:', error);
-            alert('Error deleting product.');
         }
-    }
-};
-    
+    };
 
 });
