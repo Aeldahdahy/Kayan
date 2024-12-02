@@ -36,7 +36,8 @@ const {
     getClientArabicCategories,
     getClientEnglishCategoriesWithSubCategories,
     getClientEnglishSubCategories,
-    getClientArabicSubCategories
+    getClientArabicSubCategories,
+    getClientProductEn
 } = require('../controllers/Client_Controller');
 
 
@@ -120,7 +121,7 @@ router.post('/createProduct', authMiddleware, productUpload.single('product_imag
     createProduct(req, res);
 });
 
-// Admin get-brand logic
+// Admin get-project logic
 router.get('/getProduct', authMiddleware, getProduct);
 
 // Admin get-brand-id logic
@@ -180,7 +181,8 @@ router.get('/getClientEnglishCategory', getClientEnglishSubCategories);
 // Get SubCategory by Arabic language
 router.get('/getClientArabicCategory', getClientArabicSubCategories);
 
-
+// Client get-project logic
+router.get('/getClientProductEn', getClientProductEn);
 
 
 module.exports = router;
