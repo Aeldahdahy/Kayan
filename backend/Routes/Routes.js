@@ -29,6 +29,20 @@ const {
     deleteProduct,
 } = require('../controllers/Admin_Controller');
 
+const { 
+    getClientBrand,
+    getClientBrandID,
+    getClientEnglishCategories,
+    getClientArabicCategories,
+    getClientEnglishCategoriesWithSubCategories,
+    getClientEnglishSubCategories,
+    getClientArabicSubCategories
+} = require('../controllers/Client_Controller');
+
+
+
+
+
 // Show admin information logic
 router.get('/admin', authMiddleware, getAdmin);
 
@@ -130,5 +144,43 @@ router.delete('/deleteProduct/:id', authMiddleware, deleteProduct);
 
 // Add a logout route to invalidate token
 router.post('/logout', authMiddleware, logout);
+
+
+
+
+
+
+
+// ---------------------------------------------------------------------------Client Routes----------------------------------------------------------------------------------------
+// Get client brand
+router.get('/getClientBrand', getClientBrand);
+
+// Get client brand by ID
+router.get('/getClientBrandID/:id', brandUpload.single('brand_logo'), (req, res, next) => {
+    if (req.fileValidationError) {
+        return res.status(400).json({ message: req.fileValidationError });
+    }
+    getClientBrandID(req, res);
+});
+
+
+
+// Get Category by English language
+router.get('/getClientEnglishCategory', getClientEnglishCategories);
+
+// Get category by Arabic language
+router.get('/getClientArabicCategory', getClientArabicCategories);
+
+// Get category by Arabic language
+router.get('/getClientEnglishCategoriesWithSubCategories', getClientEnglishCategoriesWithSubCategories);
+
+// Get SubCategory by English language
+router.get('/getClientEnglishCategory', getClientEnglishSubCategories);
+
+// Get SubCategory by Arabic language
+router.get('/getClientArabicCategory', getClientArabicSubCategories);
+
+
+
 
 module.exports = router;

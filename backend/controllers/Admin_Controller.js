@@ -1273,5 +1273,5 @@ module.exports = {
     getProduct,
     getProductID,
     updateProduct,
-    deleteProduct,
+    deleteProduct
 };
