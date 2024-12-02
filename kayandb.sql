@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 12:56 AM
+-- Generation Time: Nov 29, 2024 at 07:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -67,7 +67,7 @@ INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`, `l
 (5, 'Lieheir', 'Oman', '/uploads/brands/1732043565190-_Wi-Fi 10_20_2024 6_50_48 PM.png', 'en'),
 (6, 'Fresh', 'Oman', '/uploads/brands/1732043583718-_Wi-Fi 10_27_2024 6_56_10 PM.png', 'en'),
 (7, 'LDYLUIM', 'Oman', '/uploads/brands/1732043613837-Marketing in dynamic Envirnment 2023 - Dina Farms - Final Version - (I) Marketing In a Dynamic - Studocu - Google Chrome 11_17_2024 3_36_36 PM.png', 'en'),
-(8, 'Lamborghini', 'Oman', '/uploads/brands/1732043654927-System BAS DASHBORD - web - Google Chrome 9_2_2024 9_44_46 PM.png', 'en'),
+(8, 'fkjsdvn', 'Oman', '/uploads/brands/1732903630908-404 Not Found - Google Chrome 11_17_2024 5_22_34 PM.png', 'ar'),
 (9, 'Kumtel', 'Oman', '/uploads/brands/1732043748634-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_49_08 PM.png', 'en');
 
 -- --------------------------------------------------------
@@ -130,7 +130,8 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `product_sale`, `stock_quantity`, `language`, `admin_id`, `sub_category_id`, `brand_id`) VALUES
-(8, 'Awesome T-Shirt', 'A comfortable cotton t-shirt', 19.99, 100, 'en', 12, 1, 1);
+(11, 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation.	', 58.00, 50, 'en', 12, 8, 1),
+(12, 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation.', 23.00, 132, 'en', 12, 4, 2);
 
 -- --------------------------------------------------------
 
@@ -149,7 +150,8 @@ CREATE TABLE `product_image` (
 --
 
 INSERT INTO `product_image` (`image_id`, `image`, `product_id`) VALUES
-(7, '1732832490041-chapter one OD (1).pdf - Personal - Microsoft​ Edge 11_15_2024 6_51_50 PM.png', 8);
+(10, '1732903870374-chapter one OD (1).pdf - Personal - Microsoftâ Edge 11_15_2024 6_51_50 PM.png', 11),
+(11, '1732899095419-404 Not Found - Google Chrome 11_17_2024 5_22_34 PM.png', 12);
 
 -- --------------------------------------------------------
 
@@ -252,13 +254,13 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `contact`
@@ -270,19 +272,19 @@ ALTER TABLE `contact`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `product_image`
 --
 ALTER TABLE `product_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `sub_category`
 --
 ALTER TABLE `sub_category`
-  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- Constraints for dumped tables

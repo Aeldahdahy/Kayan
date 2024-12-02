@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const bodyParser = require('body-parser');
 const Routes = require('./Routes/Routes');
+const { authMiddleware, logout } = require('./middleware/authMiddleware');
 
 require('dotenv').config();
 

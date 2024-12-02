@@ -519,8 +519,8 @@ const updateCategory = async (req, res) => {
     const category_id = req.params.id;
 
     // Log request body for debugging
-    console.log('Received body for update:', req.body);
-    console.log('Category ID:', category_id);
+    // console.log('Received body for update:', req.body);
+    // console.log('Category ID:', category_id);
 
     // Ensure category_id is present, and at least one field is provided to update
     if (!category_id || (!category_name && !language)) {
@@ -583,7 +583,7 @@ const deleteCategory = async (req, res) => {
     const { category_id } = req.body;
 
     // Log the received body for debugging
-    console.log('Received body for deletion:', req.body);
+    // console.log('Received body for deletion:', req.body);
 
     // Ensure category_id is provided
     if (!category_id) {
@@ -789,8 +789,8 @@ const updateSubCategory = async (req, res) => {
     const sub_category_id = req.params.id; // Subcategory ID from the URL
 
     // Log request body and ID for debugging
-    console.log('Received body for update:', req.body);
-    console.log('Subcategory ID:', sub_category_id);
+    // console.log('Received body for update:', req.body);
+    // console.log('Subcategory ID:', sub_category_id);
 
     // Ensure sub_category_id is present and at least one field is provided to update
     if (!sub_category_id || (!sub_category_name && !category_id && !language)) {
@@ -877,7 +877,7 @@ const deleteSubCategory = async (req, res) => {
     const { sub_category_id } = req.body; // Subcategory ID from the request body
 
     // Log the received body for debugging
-    console.log('Received body for deletion:', req.body);
+    // console.log('Received body for deletion:', req.body);
 
     // Ensure sub_category_id is provided
     if (!sub_category_id) {
@@ -936,7 +936,7 @@ const createProduct = async (req, res) => {
     const admin_id = req.user?.admin_id; // Admin ID comes from the token (or session)
 
     // Log for debugging (optional)
-    console.log('Admin ID from token:', admin_id);
+    // console.log('Admin ID from token:', admin_id);
 
     // Check if all required fields are provided
     if (!product_name || !product_description || !product_sale || !stock_quantity || !sub_category_id || !brand_id || !productImage || !admin_id || !language) {
@@ -1077,122 +1077,155 @@ const getProduct = async (req, res) => {
 };
 
 const getProductID = async (req, res) => {
-    const productId = req.params.id;
+    const product_id = req.params.id;
 
-    const query = `
-        SELECT p.product_id, p.product_name, p.product_description, p.product_sale, 
-               p.stock_quantity, p.language, p.sub_category_id, p.brand_id, pi.image AS product_image
-        FROM product p
-        LEFT JOIN product_image pi ON pi.product_id = p.product_id
-        WHERE p.product_id = ?`;
-
-    db.query(query, [productId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Error fetching product data', error: err });
-        }
-
-        if (result.length > 0) {
-            const product = result[0];
-            res.status(200).json({ product });
-        } else {
-            res.status(404).json({ message: 'Product not found' });
-        }
-    });
-};
-
-const updateProduct = async (req, res) => {
-    const { product_id, product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id } = req.body;
-    const productImage = req.file; // Get the uploaded file, if any
-
-    // Ensure product_id is provided and at least one field is set to update
-    if (!product_id || (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && !productImage)) {
-        return res.status(400).json({ message: 'Please provide product id and at least one field to update' });
+    if(!product_id){
+        res.status(400).json({message: 'Product ID is required'});
     }
-
-    // Generate the image path (only if a new file is uploaded)
-    const product_image_path = productImage ? `/uploads/products/${productImage.filename}` : null;
 
     try {
         const connection = await db.getConnection();
         try {
-            let updateFields = [];
-            let updateParams = [];
+            const [product] = await db.query(`
+                SELECT p.product_id, p.product_name, p.product_description, p.product_sale, 
+                p.stock_quantity, p.language, p.sub_category_id, p.brand_id, pi.image AS product_image
+                FROM product p
+                LEFT JOIN product_image pi ON pi.product_id = p.product_id
+                WHERE p.product_id = ?`,
+                [product_id]);
 
-            // Prepare fields for update
+            if(product.length === 0){
+                res.status(404).json({message: 'Product not found'});
+            }
+            return res.status(200).json({
+                message: 'Product retrieved successfully',
+                product: product[0]
+            });
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const updateProduct = async (req, res) => {
+    const { product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id } = req.body;
+    const product_id = req.params.id;
+    const productImage = req.file; // Get the uploaded file, if any
+
+    // Ensure `product_id` is provided and at least one field is set to update
+    if (!product_id || (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && !productImage)) {
+        return res.status(400).json({ message: 'Please provide product ID and at least one field to update' });
+    }
+
+    // Generate the image path if a new file is uploaded
+    const product_image_path = productImage ? `${productImage.filename}` : null;
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction(); // Start a transaction for consistency
+
+            // Prepare updates for the `product` table
+            let productUpdateFields = [];
+            let productUpdateParams = [];
+
             if (product_name) {
-                updateFields.push('product_name = ?');
-                updateParams.push(product_name);
+                productUpdateFields.push('product_name = ?');
+                productUpdateParams.push(product_name);
             }
 
             if (product_description) {
-                updateFields.push('product_description = ?');
-                updateParams.push(product_description);
+                productUpdateFields.push('product_description = ?');
+                productUpdateParams.push(product_description);
             }
 
             if (product_sale) {
-                updateFields.push('product_sale = ?');
-                updateParams.push(product_sale);
+                productUpdateFields.push('product_sale = ?');
+                productUpdateParams.push(product_sale);
             }
 
             if (stock_quantity) {
-                updateFields.push('stock_quantity = ?');
-                updateParams.push(stock_quantity);
+                productUpdateFields.push('stock_quantity = ?');
+                productUpdateParams.push(stock_quantity);
             }
 
             if (sub_category_id) {
-                updateFields.push('sub_category_id = ?');
-                updateParams.push(sub_category_id);
+                productUpdateFields.push('sub_category_id = ?');
+                productUpdateParams.push(sub_category_id);
             }
 
             if (brand_id) {
-                updateFields.push('brand_id = ?');
-                updateParams.push(brand_id);
+                productUpdateFields.push('brand_id = ?');
+                productUpdateParams.push(brand_id);
             }
 
+            // Update `product` table if necessary
+            if (productUpdateFields.length > 0) {
+                productUpdateParams.push(product_id);
+                const productUpdateQuery = `UPDATE product 
+                                            SET ${productUpdateFields.join(', ')} 
+                                            WHERE product_id = ?`;
+                await connection.query(productUpdateQuery, productUpdateParams);
+            }
+
+            // Check if image needs to be updated
             if (product_image_path) {
-                updateFields.push('product_image = ?');
-                updateParams.push(product_image_path);
+                // Update the image if a new image is provided
+                const [existingImage] = await connection.query(
+                    'SELECT image_id FROM product_image WHERE product_id = ?',
+                    [product_id]
+                );
+
+                if (existingImage.length > 0) {
+                    // Update existing image record
+                    await connection.query(
+                        'UPDATE product_image SET image = ? WHERE product_id = ?',
+                        [product_image_path, product_id]
+                    );
+                } else {
+                    // Insert a new image record if none exists
+                    await connection.query(
+                        'INSERT INTO product_image (image, product_id) VALUES (?, ?)',
+                        [product_image_path, product_id]
+                    );
+                }
             }
 
-            // Add the product_id at the end of the updateParams array
-            updateParams.push(product_id);
-
-            const updateQuery = `UPDATE product 
-                                 SET ${updateFields.join(',')} WHERE product_id = ?`;
-
-            // Execute the update query
-            const [updateResult] = await connection.query(updateQuery, updateParams);
-
-            // Check if the product was updated
-            if (updateResult.affectedRows === 0) {
-                return res.status(404).json({ message: 'Product not found or no fields were updated' });
-            }
+            // Commit the transaction
+            await connection.commit();
 
             // Retrieve the updated product along with the image
             const [updatedProduct] = await connection.query(
                 `SELECT 
                     p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
                     p.sub_category_id, p.brand_id, pi.image AS product_image 
-                    FROM product p
-                    LEFT JOIN product_image pi ON p.product_id = pi.product_id 
-                    WHERE p.product_id = ?`,
+                 FROM product p
+                 LEFT JOIN product_image pi ON p.product_id = pi.product_id 
+                 WHERE p.product_id = ?`,
                 [product_id]
             );
 
             res.status(200).json({ message: 'Product updated successfully', product: updatedProduct[0] });
-
         } catch (error) {
+            await connection.rollback(); // Rollback the transaction in case of error
             console.error('Database query error:', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
-            connection.release();
+            connection.release(); // Release the database connection
         }
     } catch (error) {
         console.error('Database connection error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params; // product_id from the URL
@@ -1246,9 +1279,6 @@ const deleteProduct = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
-
 
 module.exports = {
     getAdmin,
