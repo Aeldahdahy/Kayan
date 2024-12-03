@@ -37,7 +37,8 @@ const {
     getClientEnglishCategoriesWithSubCategories,
     getClientEnglishSubCategories,
     getClientArabicSubCategories,
-    getClientProductEn
+    getClientProductEn,
+    getClientProductEnFilter
 } = require('../controllers/Client_Controller');
 
 
@@ -183,6 +184,9 @@ router.get('/getClientArabicCategory', getClientArabicSubCategories);
 
 // Client get-project logic
 router.get('/getClientProductEn', getClientProductEn);
+
+// Client get-project Filter logic
+router.get('/getClientProductEnFilter', getClientProductEnFilter);
 
 
 module.exports = router;

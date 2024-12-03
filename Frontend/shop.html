@@ -204,7 +204,7 @@
 
 							</div><!-- /.shop-one__sidebar__item -->
 
-							<div class="shop-one__sidebar__item shop-one__sidebar__category">
+							<div class="shop-one__sidebar__item shop-one__sidebar__category filters">
 								<h3 class="shop-one__sidebar__item__title">Brands</h3>
 								<ul class="list-unstyled shop-one__sidebar__Brand__list">
 
@@ -437,104 +437,164 @@
 	<script>
 		const API_BASE = "http://localhost:2000/public";
 			const IMAGE_BASE = "http://localhost:2000";
-		fetch(`${API_BASE}/getClientBrand`)
-			.then(response => response.json())
-			.then(data => {
-				if (data.message === 'Brands retrieved successfully') {
-					const dropdown = document.getElementById('brandDropdown');
-					data.brands.forEach(brand => {
-						const option = document.createElement('option');
-						option.value = brand.brand_id;  // Use brand_id as the value
-						option.textContent = brand.brand_name;  // Display brand_name
-						dropdown.appendChild(option);
-					});
-				} else {
-					console.error('No brands found:', data.message);
+
+	// Fetch and render products
+	const fetchProducts = (filter = {}) => {
+		let url = `${API_BASE}/getClientProductEnFilter`;
+
+		// Build query string with brand_id and sub_category_id if available
+		const params = new URLSearchParams();
+		if (filter.brand_id) params.append('brand_id', filter.brand_id);
+		if (filter.sub_category_id) params.append('sub_category_id', filter.sub_category_id);
+
+		// If no filters are selected, the URL will be without brand_id or sub_category_id
+		if (!filter.brand_id && !filter.sub_category_id) {
+			// Optionally you could just clear the filters here by passing an empty object
+			url = `${API_BASE}/getClientProductEnFilter`; // Fetch all products without filters
+		}
+
+		if (params.toString()) {
+			url += `?${params.toString()}`;
+		}
+
+		fetch(url)
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
 				}
+				return response.json();
 			})
-			.catch(error => {
-				console.error('Error fetching brands:', error);
-			});
-
-
-		fetch(`${API_BASE}/getClientEnglishCategoriesWithSubCategories`)
-			.then(response => response.json())
 			.then(data => {
-				if (data.message === 'Categories with subcategories retrieved successfully') {
-					const categoryList = document.querySelector('.shop-one__sidebar__category__list');
-
-					data.categories.forEach(category => {
-						// Create category list item
-						const categoryItem = document.createElement('li');
-						const categoryLink = document.createElement('a');
-						categoryLink.href = '#';
-						categoryLink.textContent = category.category_name;
-						categoryItem.appendChild(categoryLink);
-
-						// Create subcategory dropdown
-						const subCategoryDropdown = document.createElement('select');
-						subCategoryDropdown.classList.add('shop-one__product-sorter');
-
-						// Add default option
-						const defaultOption = document.createElement('option');
-						defaultOption.value = '';
-						defaultOption.textContent = 'Select Subcategory';
-						subCategoryDropdown.appendChild(defaultOption);
-
-						// Add subcategories as options in the dropdown
-						category.subcategories.forEach(subCategory => {
-							const option = document.createElement('option');
-							option.value = subCategory.sub_category_id; // Use sub_category_id as the value
-							option.textContent = subCategory.sub_category_name; // Display sub_category_name
-							subCategoryDropdown.appendChild(option);
-						});
-
-						categoryItem.appendChild(subCategoryDropdown);
-						categoryList.appendChild(categoryItem);
-					});
-				} else {
-					console.error('No categories found:', data.message);
-				}
-			})
-			.catch(error => {
-				console.error('Error fetching categories:', error);
-			});
-
-
-
-	fetch(`${API_BASE}/getClientProductEn`)  // Adjust URL if needed
-		.then(response => response.json())
-		.then(data => {
-			if (data.message === 'English products retrieved successfully') {
 				const productContainer = document.getElementById('product-container');
-				data.products.forEach(product => {
-					// Create a new product card for each product
-					const productCard = document.createElement('div');
-					productCard.classList.add('col-md-6', 'col-lg-4');
-					productCard.innerHTML = `
+				productContainer.innerHTML = ''; // Clear previous products
+
+				// Check for the "No products found" message
+				if (data.message === 'No products found for the given criteria' || data.products.length === 0) {
+					productContainer.innerHTML = '<p>No products found for the selected filters.</p>';
+				} else {
+					data.products.forEach(product => {
+						const productCard = document.createElement('div');
+						productCard.classList.add('col-md-6', 'col-lg-4');
+						productCard.innerHTML = `
 							<div class="shop-one__item">
 								<div class="shop-one__image">
-									<span class="shop-one__sale">${product.product_sale}% Off</span><!-- /.shop-one__sale -->
+									${product.product_sale ? `<span class="shop-one__sale">${product.product_sale}% Off</span>` : ''}
 									<img src="${IMAGE_BASE}${product.product_image}" alt="${product.product_name}">
 									<a href="cart.html" class="thm-btn shop-one__cart">More Details!</a>
-								</div><!-- /.shop-one__image -->
+								</div>
 								<div class="shop-one__content text-center">
 									<h3 class="shop-one__title">
 										<a href="product-details.html">${product.product_name}</a>
 									</h3>
-								</div><!-- /.shop-one__content -->
-							</div><!-- /.shop-one__item -->
+									<p>${product.product_description}</p>
+								</div>
+							</div>
 						`;
-					// Append the product card to the container
-					productContainer.appendChild(productCard);
+						productContainer.appendChild(productCard);
+					});
+				}
+			})
+			.catch(error => {
+				console.error('Error fetching products:', error);
+				document.getElementById('product-container').innerHTML = '<p>Error fetching products.</p>';
+			});
+	};
+	// Fetch and populate brand dropdown
+	const fetchBrands = () => {
+		fetch(`${API_BASE}/getClientBrand`)
+			.then(response => response.json())
+			.then(data => {
+				if (data.message === 'Brands retrieved successfully') {
+						const brandDropdown = document.getElementById('brandDropdown');
+						data.brands.forEach(brand => {
+							const option = document.createElement('option');
+							option.value = brand.brand_id; // Use brand_id as the value
+							option.textContent = brand.brand_name; // Display brand_name
+							brandDropdown.appendChild(option);
+						});
+					} else {
+						console.error('No brands found:', data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error fetching brands:', error);
 				});
-			} else {
-				console.error('No products found for English');
-			}
-		})
-		.catch(error => {
-			console.error('Error fetching products:', error);
-		});
+					};
+				
+					// Fetch and populate categories with subcategories
+					const fetchCategories = () => {
+					fetch(`${API_BASE}/getClientEnglishCategoriesWithSubCategories`)
+						.then(response => response.json())
+						.then(data => {
+							if (data.message === 'Categories with subcategories retrieved successfully') {
+								const categoryList = document.querySelector('.shop-one__sidebar__category__list');
+							data.categories.forEach(category => {
+								// Create category list item
+								const categoryItem = document.createElement('li');
+								const categoryLink = document.createElement('a');
+								categoryLink.href = '#';
+								categoryLink.textContent = category.category_name;
+								categoryItem.appendChild(categoryLink);
+
+							// Create subcategory dropdown
+							const subCategoryDropdown = document.createElement('select');
+							subCategoryDropdown.classList.add('shop-one__product-sorter');
+
+							// Add default option
+							const defaultOption = document.createElement('option');
+							defaultOption.value = '';
+							defaultOption.textContent = 'Select Subcategory';
+							subCategoryDropdown.appendChild(defaultOption);
+							
+							// Add subcategories as options
+							category.subcategories.forEach(subCategory => {
+								const option = document.createElement('option');
+								option.value = subCategory.sub_category_id; // Use sub_category_id as the value
+								option.textContent = subCategory.sub_category_name; // Display sub_category_name
+								subCategoryDropdown.appendChild(option);
+							});
+							
+							// Append dropdown to category item
+							categoryItem.appendChild(subCategoryDropdown);
+							categoryList.appendChild(categoryItem);
+
+							// Add event listener for subcategory selection
+							subCategoryDropdown.addEventListener('change', (e) => {
+								const sub_category_id = e.target.value;
+								if (sub_category_id) {
+									fetchProducts({ sub_category_id });
+								}
+							});
+						});
+						} else {
+							console.error('No categories found:', data.message);
+						}
+					})
+					.catch(error => {
+						console.error('Error fetching categories:', error);
+					});
+					};
+				
+					// Add event listener for brand dropdown
+					const initBrandFilter = () => {
+						const brandDropdown = document.getElementById('brandDropdown');
+						brandDropdown.addEventListener('change', (e) => {
+							const brand_id = e.target.value;
+							if (brand_id) {
+								fetchProducts({ brand_id });
+							}
+					});
+					};
+
+					// Initialize the page
+					const initPage = () => {
+						fetchProducts(); // Fetch all products initially
+						fetchBrands(); // Populate brand dropdown
+						fetchCategories(); // Populate categories and subcategories
+						initBrandFilter(); // Add brand filter event
+					};
+
+					document.addEventListener('DOMContentLoaded', initPage);
 	</script>
 
 
