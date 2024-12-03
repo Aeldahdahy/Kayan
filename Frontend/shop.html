@@ -198,8 +198,8 @@
 						<div class="shop-one__sidebar">
 							<div class="shop-one__sidebar__item shop-one__sidebar__search">
 								<form action="#">
-									<input type="text" placeholder="Search here">
-									<button type="submit"><i class=" icon-magnifying-glass1 "></i></button>
+									<input type="text" id="search-input" placeholder="Search for products..." />
+									<button type="submit" id="search-button"><i class=" icon-magnifying-glass1 "></i></button>
 								</form>
 
 							</div><!-- /.shop-one__sidebar__item -->
@@ -438,26 +438,21 @@
 		const API_BASE = "http://localhost:2000/public";
 			const IMAGE_BASE = "http://localhost:2000";
 
-	// Fetch and render products
-	const fetchProducts = (filter = {}) => {
-		let url = `${API_BASE}/getClientProductEnFilter`;
+			// Fetch and render products
+			const fetchProducts = (filter = {}) => {
+				let url = `${API_BASE}/getClientProductEnFilter`;
+		
+			// Build query string with brand_id, sub_category_id, and search term if available
+			const params = new URLSearchParams();
+			if (filter.brand_id) params.append('brand_id', filter.brand_id);
+			if (filter.sub_category_id) params.append('sub_category_id', filter.sub_category_id);
+			if (filter.search) params.append('search', filter.search); // Adding search parameter
 
-		// Build query string with brand_id and sub_category_id if available
-		const params = new URLSearchParams();
-		if (filter.brand_id) params.append('brand_id', filter.brand_id);
-		if (filter.sub_category_id) params.append('sub_category_id', filter.sub_category_id);
-
-		// If no filters are selected, the URL will be without brand_id or sub_category_id
-		if (!filter.brand_id && !filter.sub_category_id) {
-			// Optionally you could just clear the filters here by passing an empty object
-			url = `${API_BASE}/getClientProductEnFilter`; // Fetch all products without filters
-		}
-
-		if (params.toString()) {
+			if (params.toString()) {
 			url += `?${params.toString()}`;
-		}
+			}
 
-		fetch(url)
+			fetch(url)
 			.then(response => {
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
@@ -476,20 +471,20 @@
 						const productCard = document.createElement('div');
 						productCard.classList.add('col-md-6', 'col-lg-4');
 						productCard.innerHTML = `
-							<div class="shop-one__item">
-								<div class="shop-one__image">
-									${product.product_sale ? `<span class="shop-one__sale">${product.product_sale}% Off</span>` : ''}
-									<img src="${IMAGE_BASE}${product.product_image}" alt="${product.product_name}">
-									<a href="cart.html" class="thm-btn shop-one__cart">More Details!</a>
-								</div>
-								<div class="shop-one__content text-center">
-									<h3 class="shop-one__title">
-										<a href="product-details.html">${product.product_name}</a>
-									</h3>
-									<p>${product.product_description}</p>
-								</div>
-							</div>
-						`;
+					<div class="shop-one__item">
+					  <div class="shop-one__image">
+						${product.product_sale ? `<span class="shop-one__sale">${product.product_sale}% Off</span>` : ''}
+						<img src="${IMAGE_BASE}${product.product_image}" alt="${product.product_name}">
+						<a href="cart.html" class="thm-btn shop-one__cart">More Details!</a>
+					  </div>
+					  <div class="shop-one__content text-center">
+						<h3 class="shop-one__title">
+						  <a href="product-details.html">${product.product_name}</a>
+						</h3>
+						<p>${product.product_description}</p>
+					  </div>
+					</div>
+				  `;
 						productContainer.appendChild(productCard);
 					});
 				}
@@ -498,105 +493,144 @@
 				console.error('Error fetching products:', error);
 				document.getElementById('product-container').innerHTML = '<p>Error fetching products.</p>';
 			});
-	};
-	// Fetch and populate brand dropdown
-	const fetchBrands = () => {
-		fetch(`${API_BASE}/getClientBrand`)
+		};
+
+			// Fetch and populate brand dropdown
+			const fetchBrands = () => {
+				fetch(`${API_BASE}/getClientBrand`)
 			.then(response => response.json())
 			.then(data => {
 				if (data.message === 'Brands retrieved successfully') {
-						const brandDropdown = document.getElementById('brandDropdown');
-						data.brands.forEach(brand => {
-							const option = document.createElement('option');
-							option.value = brand.brand_id; // Use brand_id as the value
-							option.textContent = brand.brand_name; // Display brand_name
-							brandDropdown.appendChild(option);
+					const brandDropdown = document.getElementById('brandDropdown');
+					data.brands.forEach(brand => {
+						const option = document.createElement('option');
+						option.value = brand.brand_id; // Use brand_id as the value
+						option.textContent = brand.brand_name; // Display brand_name
+						brandDropdown.appendChild(option);
+					});
+				} else {
+					console.error('No brands found:', data.message);
+				}
+			})
+						.catch(error => {
+							console.error('Error fetching brands:', error);
 						});
-					} else {
-						console.error('No brands found:', data.message);
-					}
-				})
-				.catch(error => {
-					console.error('Error fetching brands:', error);
-				});
-					};
-				
-					// Fetch and populate categories with subcategories
-					const fetchCategories = () => {
+				};
+
+				// Fetch and populate categories with subcategories
+				const fetchCategories = () => {
 					fetch(`${API_BASE}/getClientEnglishCategoriesWithSubCategories`)
 						.then(response => response.json())
 						.then(data => {
 							if (data.message === 'Categories with subcategories retrieved successfully') {
 								const categoryList = document.querySelector('.shop-one__sidebar__category__list');
-							data.categories.forEach(category => {
-								// Create category list item
-								const categoryItem = document.createElement('li');
-								const categoryLink = document.createElement('a');
-								categoryLink.href = '#';
-								categoryLink.textContent = category.category_name;
-								categoryItem.appendChild(categoryLink);
+								data.categories.forEach(category => {
+									// Create category list item
+									const categoryItem = document.createElement('li');
+									const categoryLink = document.createElement('a');
+									categoryLink.href = '#';
+									categoryLink.textContent = category.category_name;
+									categoryItem.appendChild(categoryLink);
 
-							// Create subcategory dropdown
-							const subCategoryDropdown = document.createElement('select');
-							subCategoryDropdown.classList.add('shop-one__product-sorter');
+									// Create subcategory dropdown
+									const subCategoryDropdown = document.createElement('select');
+									subCategoryDropdown.classList.add('shop-one__product-sorter');
 
-							// Add default option
-							const defaultOption = document.createElement('option');
-							defaultOption.value = '';
-							defaultOption.textContent = 'Select Subcategory';
-							subCategoryDropdown.appendChild(defaultOption);
-							
-							// Add subcategories as options
-							category.subcategories.forEach(subCategory => {
-								const option = document.createElement('option');
-								option.value = subCategory.sub_category_id; // Use sub_category_id as the value
-								option.textContent = subCategory.sub_category_name; // Display sub_category_name
-								subCategoryDropdown.appendChild(option);
-							});
-							
-							// Append dropdown to category item
-							categoryItem.appendChild(subCategoryDropdown);
-							categoryList.appendChild(categoryItem);
+									// Add default option
+									const defaultOption = document.createElement('option');
+									defaultOption.value = '';
+									defaultOption.textContent = 'Select Subcategory';
+									subCategoryDropdown.appendChild(defaultOption);
 
-							// Add event listener for subcategory selection
-							subCategoryDropdown.addEventListener('change', (e) => {
-								const sub_category_id = e.target.value;
-								if (sub_category_id) {
-									fetchProducts({ sub_category_id });
-								}
-							});
-						});
-						} else {
-							console.error('No categories found:', data.message);
+									// Add subcategories as options
+									category.subcategories.forEach(subCategory => {
+										const option = document.createElement('option');
+										option.value = subCategory.sub_category_id; // Use sub_category_id as the value
+										option.textContent = subCategory.sub_category_name; // Display sub_category_name
+										subCategoryDropdown.appendChild(option);
+									});
+
+									// Append dropdown to category item
+									categoryItem.appendChild(subCategoryDropdown);
+									categoryList.appendChild(categoryItem);
+
+									// Add event listener for subcategory selection
+									subCategoryDropdown.addEventListener('change', (e) => {
+										const sub_category_id = e.target.value;
+					  const brand_id = document.getElementById('brandDropdown').value;
+					  const searchTerm = document.getElementById('search-input').value.trim();
+					  fetchProducts({ brand_id, sub_category_id, search: searchTerm });
+				  });
+				});
+				} else {
+					console.error('No categories found:', data.message);
+				}
+			})
+								.catch(error => {
+									console.error('Error fetching categories:', error);
+								});
+						};
+					
+			// Initialize brand and subcategory filters
+			const initFilters = () => {
+				const brandDropdown = document.getElementById('brandDropdown');
+				const subCategoryDropdowns = document.querySelectorAll('.shop-one__product-sorter');
+
+				brandDropdown.addEventListener('change', () => {
+					const brand_id = brandDropdown.value;
+					const isSubCategoryDefault = [...subCategoryDropdowns].every(dropdown => dropdown.value === '');
+					const searchTerm = document.getElementById('search-input').value.trim();
+
+					if (!brand_id && isSubCategoryDefault && !searchTerm) {
+						fetchProducts(); // Fetch all products if no filters are applied
+					} else {
+						fetchProducts({ brand_id, search: searchTerm });
+					}
+				});
+			};
+		
+			// Handle search functionality
+			const searchProducts = () => {
+				const searchInput = document.getElementById('search-input');
+				if (!searchInput) return; // Check if search-input exists
+				const searchTerm = searchInput.value.trim();
+
+				if (searchTerm) {
+					fetchProducts({ search: searchTerm });
+				} else {
+					// If search input is empty, fetch products without the search term
+					fetchProducts();
+				}
+			};
+		
+			// Initialize the page
+			const initPage = () => {
+			// Check if the DOM elements exist before trying to add event listeners
+			const searchButton = document.getElementById('search-button');
+			if (searchButton) {
+				searchButton.addEventListener('click', searchProducts);
+
+				// Optional: Trigger search on Enter key press for convenience
+				const searchInput = document.getElementById('search-input');
+				if (searchInput) {
+					searchInput.addEventListener('keypress', (e) => {
+						if (e.key === 'Enter') {
+							searchProducts();
 						}
-					})
-					.catch(error => {
-						console.error('Error fetching categories:', error);
 					});
-					};
-				
-					// Add event listener for brand dropdown
-					const initBrandFilter = () => {
-						const brandDropdown = document.getElementById('brandDropdown');
-						brandDropdown.addEventListener('change', (e) => {
-							const brand_id = e.target.value;
-							if (brand_id) {
-								fetchProducts({ brand_id });
-							}
-					});
-					};
+				}
+			}
+		
+			fetchProducts(); // Fetch all products initially
+			fetchBrands(); // Populate brand dropdown
+			fetchCategories(); // Populate categories and subcategories
+				initFilters(); // Add brand and subcategory filter event listeners
+			};
 
-					// Initialize the page
-					const initPage = () => {
-						fetchProducts(); // Fetch all products initially
-						fetchBrands(); // Populate brand dropdown
-						fetchCategories(); // Populate categories and subcategories
-						initBrandFilter(); // Add brand filter event
-					};
-
-					document.addEventListener('DOMContentLoaded', initPage);
+			document.addEventListener('DOMContentLoaded', initPage);
 	</script>
-
+	
+	
 
 </body>
 
