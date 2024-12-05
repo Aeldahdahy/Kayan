@@ -45,7 +45,6 @@ const {
 
 
 
-
 // Show admin information logic
 router.get('/admin', authMiddleware, getAdmin);
 
@@ -116,29 +115,20 @@ router.put('/updateSubCategory/:id', authMiddleware, updateSubCategory);
 router.delete('/deleteSubCategory/:id', authMiddleware, deleteSubCategory);
 
 // Admin create-Product logic
-router.post('/createProduct', authMiddleware, productUpload.single('product_image'), (req, res, next) => {
-    if (req.fileValidationError) {
-        return res.status(400).json({ message: req.fileValidationError });
-    }
+router.post('/createProduct', authMiddleware, productUpload.array('product_images[]', 10), (req, res) => {
     createProduct(req, res);
 });
 
-// Admin get-project logic
+// Admin get-product logic
 router.get('/getProduct', authMiddleware, getProduct);
 
-// Admin get-brand-id logic
-router.get('/getProductID/:id', authMiddleware, productUpload.single('product_image'), (req, res, next) => {
-    if (req.fileValidationError) {
-        return res.status(400).json({ message: req.fileValidationError });
-    }
+// Admin get-product-by-id logic (no need for file upload on GET routes)
+router.get('/getProductID/:id', authMiddleware, (req, res) => {
     getProductID(req, res);
 });
 
-// Admin update-Product logic
-router.put('/updateProduct/:id', authMiddleware, productUpload.single('product_image'), (req, res, next) => {
-    if (req.fileValidationError) {
-        return res.status(400).json({ message: req.fileValidationError });
-    }
+// Admin update-product logic
+router.put('/updateProduct/:id', authMiddleware, productUpload.array('product_images[]', 10), (req, res) => {
     updateProduct(req, res);
 });
 
@@ -147,8 +137,6 @@ router.delete('/deleteProduct/:id', authMiddleware, deleteProduct);
 
 // Add a logout route to invalidate token
 router.post('/logout', authMiddleware, logout);
-
-
 
 
 

@@ -1,5 +1,5 @@
-// const axios = require('axios');
 const API_BASE = "http://localhost:2000/public";
+const RROUTES_API_BASE = "http://localhost:2000";
 
 const translations = {
     en: {
@@ -60,22 +60,23 @@ const translations = {
         categoryColumn: "Category",
         brandsTitle:"All Brands",
        
-        
+        atLeastOneImageRequired:"at Least One Image Required",
         // Products
         productNamePlaceholder: "Product Name",
         productDescriptionPlaceholder: "Product Description",
-        productSalePlaceholder: "Product Sale Price",
+        productSalePlaceholder: "Product Discount",
         stockQuantityPlaceholder: "Stock Quantity",
         selectSubcategory: "Select Subcategory",
         selectBrand: "Select Brand",
         productsTitle: "All Products",
         descriptionColumn: "Description",
-        salePriceColumn: "Sale Price",
+        salePriceColumn: "Discount",
         stockColumn: "Stock",
         subcategoryColumn: "Subcategory",
         brandColumn: "Brand",
         imageColumn: "Image",
-        productSalePricePlaceholder:"Product Sale Price",
+        productSalePricePlaceholder:"Product Discount ",
+        AddAnotherImage:"Add Another Image",
 
         // brandFetchError: 'Error fetching brands.',
     },
@@ -140,20 +141,22 @@ const translations = {
         // Products
         productNamePlaceholder: "اسم المنتج",
         productDescriptionPlaceholder: "وصف المنتج",
-        productSalePlaceholder: "سعر المنتج",
+        productSalePlaceholder: "تخفيض",
         stockQuantityPlaceholder: "الكمية المتوفرة",
         selectSubcategory: "اختر الفئة الفرعية",
         selectBrand: "اختر العلامة التجارية",
         productsTitle: "جميع المنتجات",
         descriptionColumn: "الوصف",
-        salePriceColumn: "سعر البيع",
+        salePriceColumn: "تخفيض",
         stockColumn: "الكمية المتوفرة",
         subcategoryColumn: "الفئة الفرعية",
         brandColumn: "العلامة التجارية",
         imageColumn: "الصورة",
-        productSalePricePlaceholder:"سعر بيع المنتج",
+        productSalePricePlaceholder:"تخفيض",
+        AddAnotherImage:"أضف صورة أخرى",
 
 
+atLeastOneImageRequired:"at Least One Image Required",
         
         // brandFetchError: '.حدث خطأ أثناء جلب العلامات التجارية',
 
@@ -203,17 +206,6 @@ function updatePageTitles() {
     buttonTitleElement.textContent = translations[lang][formTitleKey];
 }
 
-// Helper function to check authentication
-function checkAuthToken() {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-        alert("Please log in to proceed.");
-        window.location.href = "/index"; // Redirect to login page if no token found
-        return null;
-    }
-    return token;
-}
-
 function loadLanguage(translations, elements) {
     elements.forEach(element => {
         const translationKey = element.getAttribute("data-translate");
@@ -242,8 +234,6 @@ function setupLanguageButtons(langButtons, translations, elements) {
     });
 }
 
-
-
 // Load default language (either from localStorage or default to 'en')
 document.addEventListener('DOMContentLoaded', () => {
     // Default language is set from localStorage or fallback to 'en'
@@ -257,6 +247,31 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up the language buttons to switch languages dynamically
     setupLanguageButtons(langButtons, translations, translatableElements);
+
+    window.checkAuthToken = async function () {
+        const token = localStorage.getItem('authToken');
+    
+        const currentPath = window.location.pathname;
+    
+        if (currentPath === `${RROUTES_API_BASE}/` || currentPath === '/') {
+            if (token) {
+                alert("You are already logged in.");
+                window.location.href = `${RROUTES_API_BASE}/dashboard`; 
+                return null;
+            }
+            return null;
+        }
+    
+        if (!token) {
+            alert("Please log in to proceed.");
+            window.location.href = `${RROUTES_API_BASE}/`; 
+            return null;
+        }
+    
+    };
+    
+    // checkAuthToken();
+    
     
     // Handle login form submission
     const loginForm = document.getElementById("loginForm");
@@ -285,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Show success message in selected language
                     alert(translations[window.selectedLanguage].loginSuccess);
-                    window.location.href = '/dashboard'; // Redirect to dashboard
+                    window.location.href = `${RROUTES_API_BASE}/dashboard`;
                 } else {
                     // Show error message in selected language
                     alert(translations[window.selectedLanguage].loginError);
@@ -307,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const token = localStorage.getItem('authToken');
                 if(!token){
                     alert('You are not logged in.');
-                    window.location.href = '/';
+                    window.location.href = `${RROUTES_API_BASE}/`;
                     return;
                 }
                 
@@ -325,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
                     
                     alert('Logged out successfully.');
-                    window.location.href = '/';
+                    window.location.href = `${RROUTES_API_BASE}/`;
                 } else {
                     // Handle errors returned by the server
                     const data = await response.json();
@@ -346,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -411,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
             if (!token) {
                 alert(translations[window.selectedLanguage].loginError); // Show message in selected language
-                window.location.href = "/"; // Redirect to login page if token is not found
+                window.location.href = `${RROUTES_API_BASE}/`; // Redirect to login page if token is not found
                 return;
             }
 
@@ -469,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
             if (!token) {
                 alert(translations[savedLanguage].loginError); // Language-aware message
-                window.location.href = "/";
+                window.location.href = `${RROUTES_API_BASE}/`;
                 return;
             }
         
@@ -518,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
             if (!token) {
                 alert("Please log in to delete the brand.");
-                window.location.href = "index.html";  // Redirect to login if token is not found
+                window.location.href = `${RROUTES_API_BASE}/`;  // Redirect to login if token is not found
                 return;
             }
         
@@ -551,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -608,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
             if (!token) {
                 alert(translations[savedLanguage].loginError); // Language-aware message
-                window.location.href = "/";
+                window.location.href = `${RROUTES_API_BASE}/`;
                 return;
             }
 
@@ -664,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
         try {
@@ -700,7 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
         if (confirm("Are you sure you want to delete this category?")) {
@@ -736,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -789,7 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -844,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
             if (!token) {
                 alert(translations[savedLanguage].loginError); // Language-aware message
-                window.location.href = "/";
+                window.location.href = `${RROUTES_API_BASE}/`;
                 return;
             }
     
@@ -905,7 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         if (!token) {
             alert(translations[savedLanguage].loginError);
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
     
@@ -963,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -994,13 +1009,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Execute the asynchronous function to fetch and display Product
-    window.fetchProduct = async function() {
+    const addImageButton = document.getElementById('addImageButton');
+    const additionalImagesContainer = document.getElementById('additionalImagesContainer');
+    const productImageInput = document.getElementById('productImage');
+    const productImagePreview = document.getElementById('productImagePreview');
+    const productForm = document.getElementById('productForm');
+
+    window.fetchProduct = async function () {
         const token = localStorage.getItem('authToken');
-        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
     
         if (!token) {
-            alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            alert('You must be logged in to perform this action.');
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
     
@@ -1008,24 +1028,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_BASE}/getProduct`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
                 },
             });
     
-            if (!res.ok) {
-                throw new Error(translations[savedLanguage].productFetchError || 'Failed to fetch products'); // Use translations
+            const data = await res.json();
+    
+            if (!res.ok || !data.products) {
+                console.error('Products data not found in the response', data);
+                alert('No products found!');
+                return;
             }
     
-            const data = await res.json();
-            console.log(data);
-    
-            if (data.message && data.products) {
-                const productList = document.getElementById('productList'); // Assuming this is the ID for the product list table or container
-                
-                productList.innerHTML = data.products
-                    .map(
-                        product => `
+            const productList = document.getElementById('productList');
+            productList.innerHTML = data.products
+                .map((product) => {
+                    const imageHTML = product.product_images
+                        ? product.product_images
+                              .map((image) => `<img src="${image.image_url}" alt="${product.product_name}" width="50">`)
+                              .join('')
+                        : '<span>N/A</span>';
+                    return `
                         <tr>
                             <td>${product.product_id}</td>
                             <td>${product.product_name}</td>
@@ -1035,186 +1059,25 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td>${product.language || 'N/A'}</td>
                             <td>${product.sub_category_name || 'N/A'}</td>
                             <td>${product.brand_name || 'N/A'}</td>
+                            <td>${imageHTML}</td>
                             <td>
-                                <img src="${product.product_image}" alt="${product.product_name}" width="50" style="object-fit: cover;">
-                            </td>
-                            <td>
-                               <button onclick="editProduct(${product.product_id})">
-                                    ${translations[savedLanguage].editButton}
-                                </button>
-                                <button onclick="deleteProduct(${product.product_id})">
-                                    ${translations[savedLanguage].deleteButton}
-                                </button>
+                                <button onclick="editProduct(${product.product_id})">Edit</button>
+                                <button onclick="deleteProduct(${product.product_id})">Delete</button>
                             </td>
                         </tr>
-                    `
-                    ).join('');
-            } else {
-                console.error("Products data not found in the response", data);
-                // Optionally, alert the user here
-                // alert(translations[savedLanguage].productLoadFailed || 'Failed to load products.');
-            }
+                    `;
+                })
+                .join('');
         } catch (error) {
             console.error('Error fetching products:', error);
-            // Optionally, alert the user here
-            // alert(translations[savedLanguage].productFetchError || 'Error fetching products.');
+            alert('An error occurred while fetching products.');
         }
     };
-        
+    
+     
     if(document.getElementById('productList')){
         fetchProduct();
     }
-
-    const productForm = document.getElementById('productForm');
-    if (productForm) {
-        // Fetch brands and subcategories once the page loads
-        window.fetchSubCategory = async function () {
-            const token = localStorage.getItem('authToken');
-            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
-
-            if (!token) {
-                alert(translations[savedLanguage].loginError); // Language-aware message
-                window.location.href = "/"; // Redirect to login page if token is not found
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/getSubCategory`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!res.ok) throw new Error('Failed to fetch sub category');
-                const data = await res.json();
-
-                if (data.message && data.subCategories) {
-                    const subcategorySelect = document.getElementById('subcategoryId');
-                    subcategorySelect.innerHTML = `<option value="" disabled selected>Select Subcategory</option>`; // Reset dropdown
-                    data.subCategories.forEach(subCategory => {
-                        subcategorySelect.innerHTML += `<option value="${subCategory.sub_category_id}">${subCategory.sub_category_name}</option>`;
-                    });
-                } else {
-                    console.error("Subcategories data not found in the response", data);
-                    alert("Failed to load subcategories.");
-                }
-            } catch (error) {
-                console.error('Error fetching subcategories:', error);
-                alert('Error fetching subcategories.');
-            }
-        };
-
-        window.fetchBrands = async function () {
-            const token = localStorage.getItem('authToken');
-            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
-
-            if (!token) {
-                alert(translations[savedLanguage].loginError); // Language-aware message
-                window.location.href = "/"; // Redirect to login page if token is not found
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/getBrand`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!res.ok) {
-                    throw new Error(translations[savedLanguage].brandFetchError || 'Failed to fetch brands'); // Use translations
-                }
-
-                const data = await res.json();
-
-                if (data.message && data.brands) {
-                    const brandSelect = document.getElementById('brandId');
-                    brandSelect.innerHTML = `<option value="" disabled selected>Select Brand</option>`; // Reset dropdown
-                    data.brands.forEach(brand => {
-                        brandSelect.innerHTML += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
-                    });
-                } else {
-                    console.error("Brands data not found in the response", data);
-                    alert(translations[savedLanguage].brandFetchError || 'Failed to load brands');
-                }
-            } catch (error) {
-                console.error('Error fetching brands:', error);
-                alert(translations[savedLanguage].brandFetchError || 'Error fetching brands');
-            }
-        };
-
-        // Fetch brands and subcategories when the page loads
-        fetchBrands();
-        fetchSubCategory();
-
-        // Product form submission handler
-        productForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                alert(translations[window.selectedLanguage].loginError);
-                window.location.href = "/";
-                return;
-            }
-
-            const productId = document.getElementById('productId').value;
-            const productName = document.getElementById('productName').value;
-            const productDescription = document.getElementById('productDescription').value;
-            const productSale = document.getElementById('productSale').value;
-            const stockQuantity = document.getElementById('stockQuantity').value;
-            const LangId = document.getElementById('LangId').value;
-            const subcategoryId = document.getElementById('subcategoryId').value;
-            const brandId = document.getElementById('brandId').value;
-            const productImage = document.getElementById('productImage').files[0];
-
-            const formData = new FormData();
-            formData.append('product_name', productName);
-            formData.append('product_description', productDescription);
-            formData.append('product_sale', productSale);
-            formData.append('stock_quantity', stockQuantity);
-            formData.append('language', LangId);
-            formData.append('sub_category_id', subcategoryId);
-            formData.append('brand_id', brandId);
-            
-            if (productImage) {
-                formData.append('product_image', productImage); // Attach the product image
-            }
-
-            const method = productId ? 'PUT' : 'POST'; // Decide method based on existence of productId
-            const endpoint = productId ? `${API_BASE}/updateProduct/${productId}` : `${API_BASE}/createProduct`;
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: method,
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: formData,
-                });
-                const response = await res.json();
-
-                if (res.ok) {
-                    alert(response.message || translations[window.selectedLanguage][productId ? 'productUpdated' : 'productCreated']);
-                    fetchProduct(); // Reload the list of products (assuming this function exists)
-                    
-                    // Reset the form and reload the products
-                    document.getElementById('productForm').reset();
-                    document.getElementById('productImagePreview').style.display = 'none'; // Hide the image preview
-                } else {
-                    console.error('Error response:', response);
-                    alert(response.message || translations[window.selectedLanguage].productSaveFailed);
-                }
-            } catch (error) {
-                console.error('Error during form submission:', error);
-                alert(translations[window.selectedLanguage].productSaveError);
-            }
-        });
-    }
-
 
     window.populateDropdown = async function(endpoint, dropdownId, defaultOptionText, selectedValue = null) {
         const token = localStorage.getItem('authToken');
@@ -1222,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!token) {
             alert(translations[savedLanguage].loginError);
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
     
@@ -1238,30 +1101,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) throw new Error(`Failed to fetch data from ${endpoint}`);
             const data = await res.json();
     
-            // console.log("Dropdown Data for", dropdownId, ":", data);
-    
             const dropdown = document.getElementById(dropdownId);
-            dropdown.innerHTML = `<option value="" disabled selected>Select Brand</option>`;
+            dropdown.innerHTML = `<option value="" disabled selected data-translate="${defaultOptionText}"></option>`;
+            
+            const dropdownData = endpoint === "getSubCategory" ? data.subCategories : data.brands;
     
-            let dropdownData = [];
-            if (endpoint === "getSubCategory") {
-                dropdownData = data.subCategories; // Adjust based on your API structure
-            } else if (endpoint === "getBrand") {
-                dropdownData = data.brands; // Adjust based on your API structure
-            } else {
-                throw new Error(`Unexpected endpoint: ${endpoint}`);
-            }
-    
-            // Validate dropdownData is an array
             if (!Array.isArray(dropdownData)) {
-                throw new Error("Expected an array but received something else.");
+                throw new Error(`Expected an array but received something else from ${endpoint}`);
             }
     
-            // Populate options
             dropdownData.forEach(item => {
                 const option = document.createElement('option');
-                option.value = item.sub_category_id || item.brand_id; // Match API field for ID
-                option.textContent = item.sub_category_name || item.brand_name; // Match API field for name
+                option.value = item.sub_category_id || item.brand_id;
+                option.textContent = item.sub_category_name || item.brand_name;
                 dropdown.appendChild(option);
             });
     
@@ -1274,88 +1126,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Failed to populate ${dropdownId}.`);
         }
     };
-    
-
-    window.editProduct = async function(id) {
-        const token = localStorage.getItem('authToken');
-        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-    
-        if (!token) {
-            alert(translations[savedLanguage].loginError);
-            window.location.href = "/";
-            return;
-        }
-    
-        
-        try {
-            const res = await fetch(`${API_BASE}/getProductID/${id}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            
-            if (!res.ok) {
-                throw new Error("Failed to fetch product data.");
-            }
-            
-            const product = await res.json();
-            // console.log(
-            //     product.product.product_id,
-            //     product.product.product_name,
-            //     product.product.product_description,
-            //     product.product.product_sale,
-            //     product.product.stock_quantity,
-            //     product.product.language,
-            //     product.product.product_image,
-            //     product.product.sub_category_id,
-            //     product.product.brand_id
-            // );
-            
-            if (product) {
-             
-                // Populate inputs
-                document.getElementById('productId').value = product.product.product_id || '';
-                document.getElementById('productName').value = product.product.product_name || '';
-                document.getElementById('productDescription').value = product.product.product_description || '';
-                document.getElementById('productSale').value = product.product.product_sale || '';
-                document.getElementById('stockQuantity').value = product.product.stock_quantity || '';
-                document.getElementById('LangId').value = product.product.language || '';
-    
-                // Handle image preview
-                if (product.product.product_image) {
-                    // Prepend the base URL to the image path if necessary
-                    const product_image = `/uploads/products/${product.product.product_image}`;
-                    const previewElement = document.getElementById('productImagePreview');
-                    previewElement.src = product_image; // Set the image preview source
-                    previewElement.style.display = 'block'; // Ensure the preview is visible
-                }
-    
-                // Populate and pre-select subcategory
-                await populateDropdown('getSubCategory', 'subcategoryId', translations[savedLanguage].selectCategoryOption, product.product.sub_category_id);
-    
-                // Populate and pre-select brand
-                await populateDropdown('getBrand', 'brandId', translations[savedLanguage].selectBrandOption, product.product.brand_id);
-    
-                document.getElementById('productName').focus();
-            } else {
-                alert("Product not found.");
-            }
-        } catch (error) {
-            console.error("Error fetching product data:", error);
-            alert("Error fetching product data.");
-        }
-    };
-    
-  
+ 
     window.deleteProduct = async function(id) {
         const token = localStorage.getItem('authToken');
         const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
 
         if (!token) {
             alert(translations[savedLanguage].loginError); // Language-aware message
-            window.location.href = "/";
+            window.location.href = `${RROUTES_API_BASE}/`;
             return;
         }
 
@@ -1373,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok) {
                     alert(response.message || "Product deleted successfully.");
-                    fetchProduct(); // Refresh the product list after successful deletion
+                    fetchProduct();
                 } else {
                     alert(response.message || "Failed to delete the product.");
                 }
@@ -1384,4 +1162,347 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    
+    if (productForm) {
+        // Fetch brands and subcategories once the page loads
+        window.fetchSubCategory = async function () {
+            const token = localStorage.getItem('authToken');
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
+    
+            if (!token) {
+                alert(translations[savedLanguage].loginError); // Language-aware message
+                window.location.href = `${RROUTES_API_BASE}/`; // Redirect to login page if token is not found
+                return;
+            }
+    
+            try {
+                const res = await fetch(`${API_BASE}/getSubCategory`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+    
+                if (!res.ok) throw new Error('Failed to fetch sub category');
+                const data = await res.json();
+    
+                if (data.message && data.subCategories) {
+                    const subcategorySelect = document.getElementById('subcategoryId');
+                    subcategorySelect.innerHTML = `<option value="" disabled selected data-translate="selectSubcategory">Select Subcategory</option>`; // Reset dropdown
+                    data.subCategories.forEach(subCategory => {
+                        subcategorySelect.innerHTML += `<option value="${subCategory.sub_category_id}">${subCategory.sub_category_name}</option>`;
+                    });
+                } else {
+                    console.error("Subcategories data not found in the response", data);
+                    alert("Failed to load subcategories.");
+                }
+            } catch (error) {
+                console.error('Error fetching subcategories:', error);
+                alert('Error fetching subcategories.');
+            }
+        };
+    
+        window.fetchBrands = async function () {
+            const token = localStorage.getItem('authToken');
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Use saved or default language
+    
+            if (!token) {
+                alert(translations[savedLanguage].loginError); // Language-aware message
+                window.location.href = `${RROUTES_API_BASE}/`; // Redirect to login page if token is not found
+                return;
+            }
+    
+            try {
+                const res = await fetch(`${API_BASE}/getBrand`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+    
+                if (!res.ok) {
+                    throw new Error(translations[savedLanguage].brandFetchError || 'Failed to fetch brands'); // Use translations
+                }
+    
+                const data = await res.json();
+    
+                if (data.message && data.brands) {
+                    const brandSelect = document.getElementById('brandId');
+                    brandSelect.innerHTML = `<option value="" disabled selected data-translate="selectBrand">Select Brand</option>`; // Reset dropdown
+                    data.brands.forEach(brand => {
+                        brandSelect.innerHTML += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
+                    });
+                } else {
+                    console.error("Brands data not found in the response", data);
+                    alert(translations[savedLanguage].brandFetchError || 'Failed to load brands');
+                }
+            } catch (error) {
+                console.error('Error fetching brands:', error);
+                alert(translations[savedLanguage].brandFetchError || 'Error fetching brands');
+            }
+        };
+    
+        // Fetch brands and subcategories when the page loads
+        fetchBrands();
+        fetchSubCategory();
+    
+        productForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+        
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert(lang.loginError || 'You must be logged in to perform this action.');
+                window.location.href = `${RROUTES_API_BASE}/`;
+                return;
+            }
+        
+            const productId = document.getElementById('productId').value;
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const productSale = document.getElementById('productSale').value;
+            const stockQuantity = document.getElementById('stockQuantity').value;
+            const language = document.getElementById('LangId').value;
+            const subcategoryId = document.getElementById('subcategoryId').value;
+            const brandId = document.getElementById('brandId').value;
+        
+            if (!productName || !productDescription || !productSale || !stockQuantity || !language || !subcategoryId || !brandId) {
+                alert(lang.requiredFieldsMissing || 'Please fill all required fields.');
+                return;
+            }
+        
+            const productImages = document.querySelectorAll('input[name="product_images[]"]');
+            const imageIds = document.querySelectorAll('input[name="image_ids[]"]');
+            const deletedImageIds = document.querySelectorAll('input[name="deleted_image_ids[]"]'); // Track deleted images
+        
+            const formData = new FormData();
+            formData.append('product_name', productName);
+            formData.append('product_description', productDescription);
+            formData.append('product_sale', productSale);
+            formData.append('stock_quantity', stockQuantity);
+            formData.append('language', language);
+            formData.append('sub_category_id', subcategoryId);
+            formData.append('brand_id', brandId);
+        
+            let imageFilesAdded = false;
+        
+            // Add existing or new images
+            productImages.forEach((imageInput, index) => {
+                const imageId = imageIds && imageIds[index] ? imageIds[index].value : null;
+        
+                if (imageInput.files.length > 0) {
+                    // A new file is selected; replace the old image
+                    formData.append('product_images[]', imageInput.files[0]);
+                    imageFilesAdded = true;
+                } else if (imageId) {
+                    // No new file selected; retain the old image ID
+                    formData.append('image_ids[]', imageId);
+                }
+            });
+        
+            // Add IDs of deleted images
+            deletedImageIds.forEach((deletedImageInput) => {
+                formData.append('deleted_image_ids[]', deletedImageInput.value);
+            });
+        
+            // If no images are added for a new product, show an error
+            if (!imageFilesAdded && !productId) {
+                alert(lang.atLeastOneImageRequired || 'At least one image is required for a new product.');
+                return;
+            }
+        
+            const method = productId ? 'PUT' : 'POST';
+            const endpoint = productId ? `${API_BASE}/updateProduct/${productId}` : `${API_BASE}/createProduct`;
+        
+            try {
+                const res = await fetch(endpoint, {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: formData,
+                });
+        
+                const response = await res.json();
+        
+                if (res.ok) {
+                    alert(response.message || 'Product saved successfully.');
+                    fetchProduct(); // Refresh the product list
+                    productForm.reset(); // Reset form fields after successful submission
+        
+                    // Reset image previews
+                    document.getElementById('productImagePreview').style.display = 'none'; // Hide preview
+                    document.getElementById('additionalImagesContainer').innerHTML = ''; // Clear additional images container
+                } else {
+                    console.error('Error response:', response);
+                    alert(response.message || lang.productSaveFailed || 'Failed to save the product.');
+                }
+            } catch (error) {
+                console.error('Error during form submission:', error);
+                alert(lang.productSaveError || 'An error occurred while saving the product.');
+            }
+        });
+        
+              
+    }
+
+    productImageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                productImagePreview.src = event.target.result;
+                productImagePreview.style.display = 'block'; // Ensure the preview is visible
+            };
+            reader.readAsDataURL(file);
+        } else {
+            productImagePreview.style.display = 'none'; // Hide preview if no file is selected
+        }
+    });
+    
+    function createImageInput(existingImageUrl = null, imageId = null) {
+        const imageInputDiv = document.createElement('div');
+        imageInputDiv.classList.add('image-input');
+    
+        // Create hidden input to store `image_id`
+        const hiddenImageIdInput = document.createElement('input');
+        hiddenImageIdInput.type = 'hidden';
+        hiddenImageIdInput.name = 'image_ids[]';
+        hiddenImageIdInput.value = imageId || ''; // Set the `image_id` if provided
+        imageInputDiv.appendChild(hiddenImageIdInput);
+    
+        // Input for new image uploads
+        const imageInput = document.createElement('input');
+        imageInput.type = 'file';
+        imageInput.name = 'product_images[]';
+        imageInput.required = false; // Optional for additional images
+    
+        // Image preview element
+        const imagePreview = document.createElement('img');
+        imagePreview.style.display = existingImageUrl ? 'block' : 'none';
+        imagePreview.style.width = '100px';
+        imagePreview.alt = 'Preview';
+    
+        // Only set the preview if `existingImageUrl` is valid
+        if (existingImageUrl) {
+            imagePreview.src = existingImageUrl;
+        }
+    
+        // Update preview when a new image is selected
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagePreview.src = event.target.result; // Update preview to new image
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none'; // Hide preview if no file is selected
+            }
+        });
+    
+        // Delete button for marking images for deletion
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.innerText = 'Delete';
+        deleteButton.style.backgroundColor = 'red';
+        deleteButton.addEventListener('click', () => {
+            if (imageId) {
+                markImageForDeletion(imageId); // Mark the image for deletion if it's an existing image
+            }
+            imageInputDiv.remove(); // Remove the entire input and preview container
+        });
+    
+        // Append all elements to the image input container
+        imageInputDiv.appendChild(imageInput);
+        imageInputDiv.appendChild(imagePreview);
+        imageInputDiv.appendChild(deleteButton);
+        additionalImagesContainer.appendChild(imageInputDiv);
+    }
+    
+    // Mark image for deletion logic
+    function markImageForDeletion(imageId) {
+        // Add the image ID to the deleted images list
+        const deletedImagesContainer = document.getElementById('deletedImagesContainer');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'deleted_image_ids[]';
+        input.value = imageId;
+        deletedImagesContainer.appendChild(input);
+    }
+    
+
+    addImageButton.addEventListener('click', () => {
+        createImageInput();
+    });
+    
+    async function populateImageInputs(images) {
+        additionalImagesContainer.innerHTML = ''; // Clear any previous inputs
+        if (!images || images.length === 0) {
+            return; // No images to populate
+        }
+        for (const image of images) {
+            const fullImageUrl = image.image_url && image.image_url !== 'null' ? `uploads/products/${image.image_url}` : null;
+            createImageInput(fullImageUrl, image.image_id); // Pass existing image and image ID
+        }
+    }
+
+    window.editProduct = async function (id) {
+        const token = localStorage.getItem('authToken');
+        const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+
+        if (!token) {
+            alert(translations[savedLanguage].loginError);
+            window.location.href = `${RROUTES_API_BASE}/`;
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/getProductID/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch product data.");
+            }
+
+            const product = await res.json();
+            
+            if (product) {
+                // Populate inputs
+                document.getElementById('productId').value = product.product.product_id || '';
+                document.getElementById('productName').value = product.product.product_name || '';
+                document.getElementById('productDescription').value = product.product.product_description || '';
+                document.getElementById('productSale').value = product.product.product_sale || '';
+                document.getElementById('stockQuantity').value = product.product.stock_quantity || '';
+                document.getElementById('LangId').value = product.product.language || '';
+
+                // Populate and pre-select subcategory
+                await populateDropdown('getSubCategory', 'subcategoryId', translations[savedLanguage].selectSubcategory, product.product.sub_category_id);
+
+                // Populate and pre-select brand
+                await populateDropdown('getBrand', 'brandId', translations[savedLanguage].selectBrand, product.product.brand_id);
+
+                // Populate images with previews
+                if (product.product.product_images && Array.isArray(product.product.product_images)) {
+                    await populateImageInputs(product.product.product_images); // Pass existing images
+                }
+
+                document.getElementById('productName').focus();
+            } else {
+                alert("Product not found.");
+            }
+        } catch (error) {
+            console.error("Error fetching product data:", error);
+            alert("Error fetching product data.");
+        }
+    };
+    
 });

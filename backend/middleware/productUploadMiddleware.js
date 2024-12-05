@@ -16,16 +16,18 @@ const productStorage = multer.diskStorage({
 const productUpload = multer({
     storage: productStorage,
     fileFilter: (req, file, cb) => {
-        // Accept only jpg and png images
-        const fileExtension = path.extname(file.originalname).toLowerCase();
         const allowedExtensions = ['.jpg', '.jpeg', '.png'];
-
+        const fileExtension = path.extname(file.originalname).toLowerCase();
+        
         if (file.mimetype.startsWith('image/') && allowedExtensions.includes(fileExtension)) {
             cb(null, true);
         } else {
-            cb(new Error('Only .jpg and .png image files are allowed'), false);
+            cb(new Error('Only .jpg, .jpeg, and .png image files are allowed'));
         }
-    }
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024, // Limit files to 5MB each
+    },
 });
 
 module.exports = productUpload;

@@ -5,7 +5,7 @@
 </div>
 
 <div class="container">
-    <form id="productForm">
+    <form id="productForm" enctype="multipart/form-data">
         <h2 id="form-title" data-translate="formTitleProducts">Create or Update Product</h2>
         <input type="hidden" id="productId">
         
@@ -31,8 +31,13 @@
             <option value="" disabled selected data-translate="selectBrand">Select Brand</option>
         </select>
         
-        <input type="file" id="productImage">
+        <input type="hidden" id="productImageID" name="image_ids[]" multiple >
+        <input type="file" id="productImage" name="product_images[]" multiple hidden>
         <img id="productImagePreview" src="" alt="Product Logo Preview" style="display: none; width: 100px;">
+        <div id="additionalImagesContainer"></div>
+        <div id="deletedImagesContainer"></div>
+        <button type="button" id="addImageButton" class="btn" style="margin-bottom: 20px;">Add Another Image</button>
+
         <button type="submit" id="save-button" data-translate="saveButtonProducts">Save Product</button>
     </form>
 
@@ -60,7 +65,5 @@
 
     <a href="/dashboard" class="back-btn btn" id="back-button" data-translate="backButton">Back</a>
 </div>
-
-
 
 <%- include('partials/footer') %>

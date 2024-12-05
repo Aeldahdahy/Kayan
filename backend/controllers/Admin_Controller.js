@@ -452,7 +452,6 @@ const createCategory = async (req, res) => {
     }
 };
 
-
 const getCategory = async (req, res) => {
     try {
         const connection = await db.getConnection();
@@ -932,76 +931,82 @@ const deleteSubCategory = async (req, res) => {
 
 const createProduct = async (req, res) => {
     const { product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id } = req.body;
-    const productImage = req.file; // The uploaded file (assuming multer saved it in req.file)
-    const admin_id = req.user?.admin_id; // Admin ID comes from the token (or session)
+    const productImages = req.files || [];
+    const admin_id = req.user?.admin_id;
 
-    // Log for debugging (optional)
-    // console.log('Admin ID from token:', admin_id);
+    console.log(productImages);
 
-    // Check if all required fields are provided
-    if (!product_name || !product_description || !product_sale || !stock_quantity || !sub_category_id || !brand_id || !productImage || !admin_id || !language) {
-        return res.status(400).json({ message: 'Please provide all required fields: product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, product_image, and admin_id' });
+    if (!product_name || !product_description || !product_sale || !stock_quantity || !sub_category_id || !brand_id || !productImages || !admin_id || !language) {
+        return res.status(400).json({ message: 'Please provide all required fields: product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, product_images, and admin_id' });
     }
-
-    // Generate the product image path (relative for serving as a static file)
-    const product_image_path = `${productImage.filename}`; // Save the relative path
-
 
     try {
         const connection = await db.getConnection();
         try {
-            await connection.beginTransaction(); // Start the transaction
+            await connection.beginTransaction();
 
-            // Insert the new product into the 'product' table
             const [insertProductResult] = await connection.query(
                 'INSERT INTO product (product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 [product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, admin_id]
             );
 
-            // Check if the insert was successful
             if (insertProductResult.affectedRows === 0) {
                 await connection.rollback();
                 return res.status(500).json({ message: 'Error inserting product' });
             }
 
-            // Get the ID of the newly inserted product
             const newProductId = insertProductResult.insertId;
 
-            // Insert the product image into the 'product_image' table
-            const [insertImageResult] = await connection.query(
-                'INSERT INTO product_image (image, product_id) VALUES (?, ?)',
-                [product_image_path, newProductId]
-            );
+            for (const file of productImages) {
+                const product_image_path = file.filename;
 
-            // Check if the image insertion was successful
-            if (insertImageResult.affectedRows === 0) {
-                await connection.rollback();
-                return res.status(500).json({ message: 'Error inserting product image' });
+                const [insertImageResult] = await connection.query(
+                    'INSERT INTO product_image (image, product_id) VALUES (?, ?)',
+                    [product_image_path, newProductId]
+                );
+
+                if (insertImageResult.affectedRows === 0) {
+                    await connection.rollback();
+                    return res.status(500).json({ message: 'Error inserting product image' });
+                }
             }
 
-            // Retrieve the newly inserted product along with the product image
             const [newProduct] = await connection.query(
                 `SELECT 
-                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
-                    p.language, p.sub_category_id, p.brand_id, p.admin_id, pi.image_id, pi.image AS product_image 
-                    FROM product p 
-                    LEFT JOIN product_image pi ON p.product_id = pi.product_id 
-                    WHERE p.product_id = ?`,
+                    p.product_id, 
+                    p.product_name, 
+                    p.product_description, 
+                    p.product_sale, 
+                    p.stock_quantity, 
+                    p.language, 
+                    p.sub_category_id, 
+                    p.brand_id, 
+                    p.admin_id, 
+                    GROUP_CONCAT(pi.image) AS product_images
+                 FROM product p 
+                 LEFT JOIN product_image pi ON p.product_id = pi.product_id 
+                 WHERE p.product_id = ? 
+                 GROUP BY p.product_id`,
                 [newProductId]
             );
 
-            // Commit the transaction after everything is successful
+            // Process the product_images into an array
+            if (newProduct[0].product_images) {
+                newProduct[0].product_images = newProduct[0].product_images.split(',');
+            } else {
+                newProduct[0].product_images = [];
+            }
+
             await connection.commit();
 
-            // Return the newly created product along with a success message
             res.status(201).json({ message: 'Product created successfully', product: newProduct[0] });
 
         } catch (error) {
-            await connection.rollback(); // Rollback in case of error
+            await connection.rollback();
             console.error('Database query error: ', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
-            connection.release(); // Always release the connection back to the pool
+            connection.release();
         }
     } catch (error) {
         console.error('Database connection error: ', error);
@@ -1013,15 +1018,15 @@ const getProduct = async (req, res) => {
     try {
         const connection = await db.getConnection();
         try {
-            // Query to retrieve all products along with the product image
-            const [products] = await connection.query(
-                `SELECT 
+            // Query to retrieve all products along with their image IDs and URLs
+            const [products] = await connection.query(`
+                SELECT 
                     p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, p.language, 
                     p.sub_category_id, p.brand_id, p.admin_id, 
-                    pi.image AS product_image  -- Get the image from the product_image table
-                 FROM product p
-                 LEFT JOIN product_image pi ON p.product_id = pi.product_id`  // Left join to get the image
-            );
+                    pi.image_id, pi.image -- Fetch image ID and image URL
+                FROM product p
+                LEFT JOIN product_image pi ON p.product_id = pi.product_id -- Join to get the image details
+            `);
 
             if (products.length === 0) {
                 return res.status(404).json({ message: 'No products found' });
@@ -1052,54 +1057,89 @@ const getProduct = async (req, res) => {
                 return map;
             }, {});
 
-            // Add subcategory_name, brand_name, and image URL to each product
-            products.forEach(product => {
-                product.sub_category_name = subCategoryMap[product.sub_category_id] || 'N/A';
-                product.brand_name = brandMap[product.brand_id] || 'N/A';
-                // Ensure image URL is correctly formatted
-                product.product_image = product.product_image ? `/uploads/products/${product.product_image}` : '/path/to/default-image.jpg';
-            });
+            // Process each product and include image information
+            const formattedProducts = products.reduce((acc, product) => {
+                // Group images by product_id to form an array of image objects (with ID and URL)
+                const existingProduct = acc.find(p => p.product_id === product.product_id);
+
+                if (!existingProduct) {
+                    acc.push({
+                        product_id: product.product_id,
+                        product_name: product.product_name,
+                        product_description: product.product_description,
+                        product_sale: product.product_sale,
+                        stock_quantity: product.stock_quantity,
+                        language: product.language,
+                        sub_category_name: subCategoryMap[product.sub_category_id] || 'N/A',
+                        brand_name: brandMap[product.brand_id] || 'N/A',
+                        product_images: [{
+                            image_id: product.image_id,
+                            image_url: `/uploads/products/${product.image}`
+                        }],
+                    });
+                } else {
+                    // Add the image to the existing product if multiple images exist
+                    existingProduct.product_images.push({
+                        image_id: product.image_id,
+                        image_url: `/uploads/products/${product.image}`
+                    });
+                }
+                return acc;
+            }, []);
 
             res.status(200).json({
                 message: 'Products retrieved successfully',
-                products,
+                products: formattedProducts,
             });
         } catch (error) {
             console.error('Database query error: ', error);
-            res.status(500).json({ message: 'Server error' });
+            res.status(500).json({ message: 'Server error', error: error.message });
         } finally {
             connection.release();
         }
     } catch (error) {
         console.error('Database connection error: ', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
 const getProductID = async (req, res) => {
     const product_id = req.params.id;
 
-    if(!product_id){
-        res.status(400).json({message: 'Product ID is required'});
+    if (!product_id) {
+        return res.status(400).json({ message: 'Product ID is required' });
     }
 
     try {
         const connection = await db.getConnection();
         try {
-            const [product] = await db.query(`
-                SELECT p.product_id, p.product_name, p.product_description, p.product_sale, 
-                p.stock_quantity, p.language, p.sub_category_id, p.brand_id, pi.image AS product_image
+            const [product] = await connection.query(`
+                SELECT 
+                    p.product_id, p.product_name, p.product_description, p.product_sale, 
+                    p.stock_quantity, p.language, p.sub_category_id, p.brand_id, 
+                    pi.image_id, pi.image
                 FROM product p
                 LEFT JOIN product_image pi ON pi.product_id = p.product_id
-                WHERE p.product_id = ?`,
-                [product_id]);
+                WHERE p.product_id = ?
+            `, [product_id]);
 
-            if(product.length === 0){
-                res.status(404).json({message: 'Product not found'});
+            if (product.length === 0) {
+                return res.status(404).json({ message: 'Product not found' });
             }
-            return res.status(200).json({
+
+            // Process the images into an array, including image_id
+            const productData = product[0];
+            const productImages = product.map(image => ({
+                image_id: image.image_id,
+                image_url: `${image.image}`,
+            }));
+
+            // Attach the image data to the productData object
+            productData.product_images = productImages;
+
+            res.status(200).json({
                 message: 'Product retrieved successfully',
-                product: product[0]
+                product: productData
             });
         } catch (error) {
             console.error('Database query error: ', error);
@@ -1114,58 +1154,51 @@ const getProductID = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-    const { product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id } = req.body;
+    const { product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id, image_ids } = req.body;
     const product_id = req.params.id;
-    const productImage = req.file; // Get the uploaded file, if any
 
-    // Ensure `product_id` is provided and at least one field is set to update
-    if (!product_id || (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && !productImage)) {
-        return res.status(400).json({ message: 'Please provide product ID and at least one field to update' });
+    const productImages = req.files || [];
+    const imageIds = Array.isArray(image_ids) ? image_ids : image_ids ? [image_ids] : [];
+
+    if (!product_id || 
+        (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && productImages.length === 0 && imageIds.length === 0)) {
+        return res.status(400).json({ message: 'Please provide valid fields to update.' });
     }
-
-    // Generate the image path if a new file is uploaded
-    const product_image_path = productImage ? `${productImage.filename}` : null;
 
     try {
         const connection = await db.getConnection();
         try {
             await connection.beginTransaction(); // Start a transaction for consistency
 
-            // Prepare updates for the `product` table
-            let productUpdateFields = [];
-            let productUpdateParams = [];
+            // Update the `product` table with only valid fields
+            const productUpdateFields = [];
+            const productUpdateParams = [];
 
-            if (product_name) {
+            if (product_name && product_name.trim() !== '') {
                 productUpdateFields.push('product_name = ?');
                 productUpdateParams.push(product_name);
             }
-
-            if (product_description) {
+            if (product_description && product_description.trim() !== '') {
                 productUpdateFields.push('product_description = ?');
                 productUpdateParams.push(product_description);
             }
-
-            if (product_sale) {
+            if (product_sale && !isNaN(product_sale)) {
                 productUpdateFields.push('product_sale = ?');
                 productUpdateParams.push(product_sale);
             }
-
-            if (stock_quantity) {
+            if (stock_quantity && !isNaN(stock_quantity)) {
                 productUpdateFields.push('stock_quantity = ?');
                 productUpdateParams.push(stock_quantity);
             }
-
-            if (sub_category_id) {
+            if (sub_category_id && !isNaN(sub_category_id)) {
                 productUpdateFields.push('sub_category_id = ?');
                 productUpdateParams.push(sub_category_id);
             }
-
-            if (brand_id) {
+            if (brand_id && !isNaN(brand_id)) {
                 productUpdateFields.push('brand_id = ?');
                 productUpdateParams.push(brand_id);
             }
 
-            // Update `product` table if necessary
             if (productUpdateFields.length > 0) {
                 productUpdateParams.push(product_id);
                 const productUpdateQuery = `UPDATE product 
@@ -1174,33 +1207,40 @@ const updateProduct = async (req, res) => {
                 await connection.query(productUpdateQuery, productUpdateParams);
             }
 
-            // Check if image needs to be updated
-            if (product_image_path) {
-                // Update the image if a new image is provided
-                const [existingImage] = await connection.query(
-                    'SELECT image_id FROM product_image WHERE product_id = ?',
-                    [product_id]
-                );
+            // Fetch existing images for the product
+            const [existingImages] = await connection.query(
+                'SELECT image_id, image FROM product_image WHERE product_id = ?',
+                [product_id]
+            );
 
-                if (existingImage.length > 0) {
-                    // Update existing image record
-                    await connection.query(
-                        'UPDATE product_image SET image = ? WHERE product_id = ?',
-                        [product_image_path, product_id]
-                    );
-                } else {
-                    // Insert a new image record if none exists
+            const existingImageIds = existingImages.map(img => String(img.image_id));
+
+            // Check if any images are removed explicitly
+            const imagesToDelete = existingImages
+                .filter(img => !imageIds.includes(String(img.image_id))) // Images not in the provided image_ids
+                .map(img => img.image_id);
+
+            // Delete explicitly removed images
+            if (imagesToDelete.length > 0) {
+                await connection.query(
+                    'DELETE FROM product_image WHERE image_id IN (?) AND product_id = ?',
+                    [imagesToDelete, product_id]
+                );
+            }
+
+            // Insert or update new images
+            for (let i = 0; i < productImages.length; i++) {
+                const newImage = productImages[i] ? productImages[i].filename : null;
+                if (newImage) {
                     await connection.query(
                         'INSERT INTO product_image (image, product_id) VALUES (?, ?)',
-                        [product_image_path, product_id]
+                        [newImage, product_id]
                     );
                 }
             }
 
-            // Commit the transaction
             await connection.commit();
 
-            // Retrieve the updated product along with the image
             const [updatedProduct] = await connection.query(
                 `SELECT 
                     p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
@@ -1211,21 +1251,19 @@ const updateProduct = async (req, res) => {
                 [product_id]
             );
 
-            res.status(200).json({ message: 'Product updated successfully', product: updatedProduct[0] });
+            res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
         } catch (error) {
-            await connection.rollback(); // Rollback the transaction in case of error
+            await connection.rollback();
             console.error('Database query error:', error);
             res.status(500).json({ message: 'Server error' });
         } finally {
-            connection.release(); // Release the database connection
+            connection.release();
         }
     } catch (error) {
         console.error('Database connection error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params; // product_id from the URL
@@ -1303,5 +1341,5 @@ module.exports = {
     getProduct,
     getProductID,
     updateProduct,
-    deleteProduct
+    deleteProduct,
 };
