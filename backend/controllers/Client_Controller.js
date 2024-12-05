@@ -433,6 +433,73 @@ const getClientProductEnFilter = async (req, res) => {
     }
 };
 
+const getClientProductID = async (req, res) => {
+    const product_id = req.params.id;
+
+    if (!product_id) {
+        return res.status(400).json({ message: 'Product ID is required' });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query product details with images
+            const [product] = await connection.query(`
+                SELECT 
+                    p.product_id, 
+                    p.product_name, 
+                    p.product_description, 
+                    p.product_sale, 
+                    p.stock_quantity AS availability, 
+                    p.sub_category_id, 
+                    p.brand_id, 
+                    pi.image_id, 
+                    pi.image AS image_url
+                FROM product p
+                LEFT JOIN product_image pi 
+                ON pi.product_id = p.product_id
+                WHERE p.product_id = ?
+            `, [product_id]);
+
+            if (product.length === 0) {
+                return res.status(404).json({ message: 'Product not found' });
+            }
+
+            // Map images and provide a placeholder if no images exist
+            const productImages = product
+                .map(image => image.image_url ? `/uploads/products/${image.image_url}` : null) // Ensure the path includes uploads/products
+                .filter(Boolean); // Remove null or undefined values
+
+            if (productImages.length === 0) {
+                // Add a placeholder image if no images exist
+                productImages.push('/uploads/products/placeholder.png');
+            }
+
+            const productDetails = {
+                product_id: product[0].product_id,
+                product_name: product[0].product_name,
+                product_description: product[0].product_description,
+                product_ref: `REF-${product[0].product_id}`,
+                availability: product[0].availability > 0,
+                product_images: productImages,
+            };
+
+            res.status(200).json({
+                message: 'Product retrieved successfully',
+                product: productDetails
+            });
+        } catch (error) {
+            console.error('Database query error:', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 
 const searchClientProductEn = async (req, res) => {
     try {
@@ -533,6 +600,39 @@ const searchClientProductEn = async (req, res) => {
 };
 
 
+const submitContactForm = async (req, res) => {
+    const { message, name, email, phone, product_id } = req.body;
+
+    // console.log("Request Body:", req.body); // Log the received data
+
+    if (!message || !name || !email || !phone || !product_id) {
+        console.error("Missing fields:", { message, name, email, phone, product_id });
+        return res.status(400).json({ message: "All fields are required." });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            const [result] = await connection.query(
+                `INSERT INTO contact (message, name, email, phone, product_id) VALUES (?, ?, ?, ?, ?)`,
+                [message, name, email, phone, product_id]
+            );
+            res.status(201).json({ message: "Contact form submitted successfully.", contact_id: result.insertId });
+        } catch (error) {
+            console.error("Database error:", error);
+            res.status(500).json({ message: "Failed to submit contact form." });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error("Database connection error:", error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+
+
+
 
 
 
@@ -546,5 +646,7 @@ module.exports = {
     getClientArabicSubCategories,
     getClientProductEn,
     getClientProductEnFilter,
-    searchClientProductEn 
+    searchClientProductEn,
+    getClientProductID,
+    submitContactForm 
 };

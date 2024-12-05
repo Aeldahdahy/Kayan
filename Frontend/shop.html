@@ -438,62 +438,130 @@
 		const API_BASE = "http://localhost:2000/public";
 			const IMAGE_BASE = "http://localhost:2000";
 
-			// Fetch and render products
-			const fetchProducts = (filter = {}) => {
-				let url = `${API_BASE}/getClientProductEnFilter`;
-		
-			// Build query string with brand_id, sub_category_id, and search term if available
-			const params = new URLSearchParams();
-			if (filter.brand_id) params.append('brand_id', filter.brand_id);
-			if (filter.sub_category_id) params.append('sub_category_id', filter.sub_category_id);
-			if (filter.search) params.append('search', filter.search); // Adding search parameter
+									// Fetch and render products
+									let allProducts = []; // To store all fetched products
 
-			if (params.toString()) {
-			url += `?${params.toString()}`;
-			}
+									const fetchProducts = (filter = {}) => {
+										let url = `${API_BASE}/getClientProductEnFilter`;
 
-			fetch(url)
-			.then(response => {
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				return response.json();
-			})
-			.then(data => {
-				const productContainer = document.getElementById('product-container');
-				productContainer.innerHTML = ''; // Clear previous products
+										// Build query string with brand_id, sub_category_id, and search term if available
+										const params = new URLSearchParams();
+										if (filter.brand_id) params.append('brand_id', filter.brand_id);
+										if (filter.sub_category_id) params.append('sub_category_id', filter.sub_category_id);
+									if (filter.search) params.append('search', filter.search);
 
-				// Check for the "No products found" message
-				if (data.message === 'No products found for the given criteria' || data.products.length === 0) {
-					productContainer.innerHTML = '<p>No products found for the selected filters.</p>';
-				} else {
-					data.products.forEach(product => {
-						const productCard = document.createElement('div');
-						productCard.classList.add('col-md-6', 'col-lg-4');
-						productCard.innerHTML = `
-					<div class="shop-one__item">
-					  <div class="shop-one__image">
-						${product.product_sale ? `<span class="shop-one__sale">${product.product_sale}% Off</span>` : ''}
-						<img src="${IMAGE_BASE}${product.product_image}" alt="${product.product_name}">
-						<a href="cart.html" class="thm-btn shop-one__cart">More Details!</a>
-					  </div>
-					  <div class="shop-one__content text-center">
-						<h3 class="shop-one__title">
-						  <a href="product-details.html">${product.product_name}</a>
-						</h3>
-						<p>${product.product_description}</p>
-					  </div>
-					</div>
-				  `;
-						productContainer.appendChild(productCard);
-					});
-				}
-			})
-			.catch(error => {
-				console.error('Error fetching products:', error);
-				document.getElementById('product-container').innerHTML = '<p>Error fetching products.</p>';
-			});
-		};
+									if (params.toString()) {
+										url += `?${params.toString()}`;
+									}
+
+									fetch(url)
+										.then(response => {
+											if (!response.ok) {
+												throw new Error(`HTTP error! status: ${response.status}`);
+											}
+											return response.json();
+										})
+										.then(data => {
+										if (data.message === 'No products found for the given criteria' || data.products.length === 0) {
+											document.getElementById('product-container').innerHTML = '<p>No products found for the selected filters.</p>';
+											document.querySelector('.pagination-wrapper').style.display = 'none'; // Hide pagination
+										} else {
+											allProducts = data.products; // Store all products
+											renderProducts(1, 9); // Render the first page with 9 products
+											renderPagination(allProducts.length, 9, 1); // Initialize pagination
+										}
+									})
+												.catch(error => {
+													console.error('Error fetching products:', error);
+													document.getElementById('product-container').innerHTML = '<p>Error fetching products.</p>';
+												});
+										};
+
+										const renderProducts = (page, productsPerPage = 9) => {
+										const productContainer = document.getElementById('product-container');
+										productContainer.innerHTML = ''; // Clear previous products
+
+										const start = (page - 1) * productsPerPage;
+										const end = start + productsPerPage;
+										const productsToRender = allProducts.slice(start, end); // Get products for the current page
+
+										const renderedProducts = new Set(); // Prevent duplicates
+										productsToRender.forEach(product => {
+											if (!renderedProducts.has(product.product_id)) {
+												renderedProducts.add(product.product_id);
+
+												const productCard = document.createElement('div');
+												productCard.classList.add('col-md-6', 'col-lg-4');
+												productCard.innerHTML = `
+								<div class="shop-one__item">
+									<div class="shop-one__image">
+										${product.product_sale ? `<span class="shop-one__sale">${product.product_sale}% Off</span>` : ''}
+										<img src="${IMAGE_BASE}${product.product_image}" alt="${product.product_name}">
+										        <a href="product-details.html?product_id=${product.product_id}" class="thm-btn shop-one__cart">
+            										More Details!
+												</a>
+									</div>
+									<div class="shop-one__content text-center">
+										<h3 class="shop-one__title">
+											<a href="product-details.html?product_id=${product.product_id}">${product.product_name}</a>
+										</h3>
+										<p>${product.product_description}</p>
+									</div>
+								</div>
+							`;
+											productContainer.appendChild(productCard);
+										}
+									});
+											};
+
+											const renderPagination = (totalProducts, productsPerPage = 9, currentPage) => {
+												const paginationContainer = document.querySelector('.pagination');
+												paginationContainer.innerHTML = ''; // Clear previous pagination
+
+												const totalPages = Math.ceil(totalProducts / productsPerPage);
+
+												// Previous button
+												const prevPageItem = document.createElement('li');
+												prevPageItem.classList.add('page-item');
+												if (currentPage === 1) prevPageItem.classList.add('disabled');
+												prevPageItem.innerHTML = `<a href="#" class="page-link">Previous</a>`;
+												prevPageItem.addEventListener('click', (e) => {
+													e.preventDefault();
+													if (currentPage > 1) {
+														renderProducts(currentPage - 1, productsPerPage);
+														renderPagination(totalProducts, productsPerPage, currentPage - 1);
+													}
+												});
+												paginationContainer.appendChild(prevPageItem);
+
+												// Numbered page links
+												for (let i = 1; i <= totalPages; i++) {
+													const pageItem = document.createElement('li');
+													pageItem.classList.add('page-item');
+													if (i === currentPage) pageItem.classList.add('active');
+													pageItem.innerHTML = `<a href="#" class="page-link">${i}</a>`;
+													pageItem.addEventListener('click', (e) => {
+														e.preventDefault();
+														renderProducts(i, productsPerPage);
+														renderPagination(totalProducts, productsPerPage, i);
+									});
+									paginationContainer.appendChild(pageItem);
+								}
+
+												// Next button
+												const nextPageItem = document.createElement('li');
+												nextPageItem.classList.add('page-item');
+												if (currentPage === totalPages) nextPageItem.classList.add('disabled');
+												nextPageItem.innerHTML = `<a href="#" class="page-link">Next</a>`;
+												nextPageItem.addEventListener('click', (e) => {
+													e.preventDefault();
+													if (currentPage < totalPages) {
+														renderProducts(currentPage + 1, productsPerPage);
+														renderPagination(totalProducts, productsPerPage, currentPage + 1);
+													}
+												});
+												paginationContainer.appendChild(nextPageItem);
+											};
 
 			// Fetch and populate brand dropdown
 			const fetchBrands = () => {

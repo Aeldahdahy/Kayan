@@ -39,7 +39,9 @@ const {
     getClientArabicSubCategories,
     getClientProductEn,
     getClientProductEnFilter,
-    searchClientProductEn
+    searchClientProductEn,
+    getClientProductID,
+    submitContactForm
 } = require('../controllers/Client_Controller');
 
 
@@ -171,14 +173,24 @@ router.get('/getClientEnglishCategory', getClientEnglishSubCategories);
 // Get SubCategory by Arabic language
 router.get('/getClientArabicCategory', getClientArabicSubCategories);
 
-// Client get-project logic
+// Client get-product logic
 router.get('/getClientProductEn', getClientProductEn);
 
-// Client get-project Filter logic
+// Client get-product Filter logic
 router.get('/getClientProductEnFilter', getClientProductEnFilter);
 
 // Client Search get-project Filter logic
 router.get('/searchClientProductEn', searchClientProductEn);
+
+// Client get-product 
+router.get('/getClientProductID/:id', (req, res) => {
+    getClientProductID(req, res);
+});
+
+// contact form based on product
+router.post('/submitContactForm', (req, res) => {
+    submitContactForm(req, res);
+});
 
 
 module.exports = router;

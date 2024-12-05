@@ -271,14 +271,12 @@
 
 		<section class="product-form">
 			<div class="container">
-				<h2 class="product-content__title">Ask For More Details!</h2><!-- /.product-content__title -->
-				
-				<form action="assets/inc/sendemail.php" class="comment-one__form contact-form-validated"
-					novalidate="novalidate">
+				<h2 class="product-content__title">Ask For More Details!</h2>
+				<form id="contactForm" class="comment-one__form contact-form-validated" novalidate="novalidate">
 					<div class="row">
 						<div class="col-xl-12">
 							<div class="comment-form__input-box">
-								<textarea name="message" placeholder="Write Message"></textarea>
+								<textarea name="message" placeholder="Write Message" required></textarea>
 								<div class="comment-form__icon contact-expert__icon-comment">
 									<i class="far fa-comment"></i>
 								</div>
@@ -286,7 +284,7 @@
 						</div>
 						<div class="col-xl-6">
 							<div class="comment-form__input-box">
-								<input type="text" placeholder="Your name" name="name">
+								<input type="text" name="name" placeholder="Your name" required>
 								<div class="comment-form__icon">
 									<i class="far fa-user-circle"></i>
 								</div>
@@ -294,24 +292,19 @@
 						</div>
 						<div class="col-xl-6">
 							<div class="comment-form__input-box">
-								<input type="email" placeholder="Email Address" name="email">
+								<input type="email" name="email" placeholder="Email Address" required>
 								<div class="comment-form__icon">
 									<i class="far fa-envelope"></i>
 								</div>
 							</div>
 						</div>
-
 						<div class="col-xl-6">
 							<div class="comment-form__input-box">
-								<input type="text" placeholder="Phone Number" name="Phone">
-								
+								<input type="text" name="phone" placeholder="Phone Number" required>
 							</div>
 						</div>
-						<div class="col-xl-6">
-							<div class="comment-form__input-box">
-								<input type="email" placeholder="Product Name" name="P_Name">
-							
-							</div>
+						<div>
+							<input type="hidden" name="product_id" id="product-id-hidden">
 						</div>
 					</div>
 					<div class="row">
@@ -320,10 +313,8 @@
 						</div>
 					</div>
 				</form>
-
-
-			</div><!-- /.container -->
-		</section><!-- /.product-form -->
+			</div>
+			</section>
 
 
 		<!--Site Footer One Start-->
@@ -513,6 +504,122 @@
 	<!-- template js -->
 	<script src="assets/js/aivons.js"></script>
 
+	<script>
+		const API_BASE = "http://localhost:2000/public";
+		const IMAGE_BASE = "http://localhost:2000"; // Ensure this points to your server's root URL
+
+		// Get product_id from URL parameters
+		const urlParams = new URLSearchParams(window.location.search);
+		const productId = urlParams.get('product_id');
+
+		if (!productId) {
+			alert("Product ID not found. Redirecting to the shop page.");
+			window.location.href = "shop.html";
+		}
+
+		// Fetch product details from API
+		const fetchProductDetails = async () => {
+			try {
+				const response = await fetch(`${API_BASE}/getClientProductID/${productId}`);
+				if (!response.ok) throw new Error("Failed to fetch product details.");
+
+				const data = await response.json();
+				if (!data.product || !data.product.product_id) throw new Error("Product not found.");
+
+				renderProductDetails(data.product);
+			} catch (error) {
+				console.error(error);
+				document.querySelector('.product-details').innerHTML = '<p>Error loading product details.</p>';
+			}
+		};
+
+		// Render product details dynamically
+		const renderProductDetails = (product) => {
+			// Update product name
+			document.querySelector('.product-details__content__name').textContent = product.product_name;
+
+			// Update product description in the product-details section
+			document.querySelector('.product-details__content__text').innerHTML =
+				`<p>${product.product_ref}<br>${product.availability ? "Available in store" : "Out of stock"}</p>`;
+
+			// Update product description in the product-content section
+			const productContentSection = document.querySelector('.product-content .container');
+			productContentSection.innerHTML =
+				`<h2 class="product-content__title">Description</h2>
+				<p>${product.product_description}</p>`;
+
+			// Update stock status
+			const stockStatus = product.availability ? "In Stock" : "Out of Stock";
+			const stockColor = product.availability ? "green" : "red";
+			document.querySelector('.product-details__content__quantity__text').innerHTML =
+				`Available? <span style="color: ${stockColor};">${stockStatus}</span>`;
+
+			// Handle product images
+			const carouselInner = document.querySelector('.carousel-inner');
+			carouselInner.innerHTML = ''; // Clear previous images
+
+			if (Array.isArray(product.product_images) && product.product_images.length > 0) {
+				product.product_images.forEach((image, index) => {
+					const activeClass = index === 0 ? 'active' : '';
+					carouselInner.innerHTML += `<div class="carousel-item ${activeClass}">
+						<img src="${IMAGE_BASE}${image}" class="d-block w-100" alt="${product.product_name} Image ${index + 1}">
+						</div>`;
+				});
+			} else {
+				// Fallback to a placeholder image
+				carouselInner.innerHTML = `<div class="carousel-item active">
+					<img src="${IMAGE_BASE}/uploads/products/placeholder.png" class="d-block w-100" alt="Placeholder Image">
+					</div>`;
+			}
+		};
+
+		// Initialize the page
+		document.addEventListener("DOMContentLoaded", () => {
+			fetchProductDetails();
+		});
+
+
+		document.addEventListener("DOMContentLoaded", () => {
+			const urlParams = new URLSearchParams(window.location.search);
+			const productId = urlParams.get("product_id");
+			if (productId) {
+				document.getElementById("product-id-hidden").value = productId;
+			}
+
+			const contactForm = document.getElementById("contactForm");
+			contactForm.addEventListener("submit", async (e) => {
+				e.preventDefault(); // Prevent default form submission behavior
+
+				// Collect form data
+				const formData = new FormData(contactForm);
+				const formObject = Object.fromEntries(formData.entries());
+
+				try {
+					const response = await fetch("http://localhost:2000/public/submitContactForm", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(formObject),
+					});
+
+					if (response.ok) {
+						alert("Your message has been received. We will contact you as soon as possible.");
+						contactForm.reset(); // Reset the form after submission
+					} else {
+						const errorData = await response.json();
+						alert(`Error: ${errorData.message}`);
+					}
+				} catch (error) {
+					console.error("Submission error:", error);
+					alert("An error occurred while submitting the form. Please try again later.");
+				}
+			});
+		});
+
+
+
+	</script>
 
 
 </body>
