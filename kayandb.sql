@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 09, 2024 at 01:21 PM
+-- Generation Time: Dec 09, 2024 at 02:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -109,14 +109,6 @@ CREATE TABLE `contact` (
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `contact`
---
-
-INSERT INTO `contact` (`contact_id`, `message`, `name`, `email`, `phone`, `product_id`) VALUES
-(2, 'How much does this product cost?', 'Taha', 'tahaelrajel8@gmail.com', '01142903857', 14),
-(3, 'Hi', 'Taha', 'tahaelrajel8@gmail.com', '01142903857', 18);
-
 -- --------------------------------------------------------
 
 --
@@ -135,23 +127,6 @@ CREATE TABLE `product` (
   `brand_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `product`
---
-
-INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `product_sale`, `stock_quantity`, `language`, `admin_id`, `sub_category_id`, `brand_id`) VALUES
-(8, 'BOB', 'bob2002', '10.00', 1, 'en', 12, 1, 9),
-(14, 'Taha', 'taha2002', '25.00', 100, 'en', 12, 2, 4),
-(15, 'lkdsnvldskn', 'lkxncvlkxn', '10.00', 10, 'en', 12, 2, 9),
-(17, 'kdngsd', 'dfgdfgf', '50.00', 96, 'en', 12, 5, 9),
-(18, 'sedfsf', 'sfnfklfs', '32.00', 32, 'en', 12, 13, 7),
-(19, 'dsfsfegfr', 'gvjskwfk', '23.00', 72, 'en', 12, 13, 1),
-(20, 'ffsdvdfdssw', 'jksducys', '21.00', 89, 'en', 12, 8, 5),
-(21, 'BOB12', 'sdvxknv kldfnkl', '144.00', 5454, 'en', 12, 11, 7),
-(22, 'BOB344', 'dwfjnkedf', '23.00', 554, 'en', 12, 6, 6),
-(23, 'Tahaaaaaaaaaaaaaaaaa', 'ldsnvldnfk', '0', 3, 'en', 12, 6, 5),
-(24, 'khalaf', 'lksdjg;sjd;gms;ldgm;sl', '15', 50, 'en', 12, 12, 9);
-
 -- --------------------------------------------------------
 
 --
@@ -163,29 +138,6 @@ CREATE TABLE `product_image` (
   `image` varchar(255) NOT NULL,
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `product_image`
---
-
-INSERT INTO `product_image` (`image_id`, `image`, `product_id`) VALUES
-(7, '1733184846236-2222222.jpg', 8),
-(16, '1733359758097-270x282-1_-dVUhRH4966sCOk.jpg', 8),
-(17, '1733359951232-2222222.jpg', 14),
-(18, '1733359951232-270x282-1_-dVUhRH4966sCOk.jpg', 14),
-(20, '1733360087264-2222222.jpg', 15),
-(21, '1733360229262-270x282-1_-dVUhRH4966sCOk.jpg', 17),
-(22, '1733360229262-111111.jpg', 17),
-(23, '1733362427038-111111.jpg', 18),
-(24, '1733362461317-2222222.jpg', 19),
-(25, '1733362491357-2222222.jpg', 20),
-(26, '1733362529574-2222222.jpg', 21),
-(27, '1733362529574-270x282-1_-dVUhRH4966sCOk.jpg', 21),
-(28, '1733362566546-270x282-1_-dVUhRH4966sCOk.jpg', 22),
-(29, '1733362600488-270x282-1_-dVUhRH4966sCOk.jpg', 23),
-(30, '1733606433828-270x282-1_-dVUhRH4966sCOk.jpg', 24),
-(31, '1733606433828-2222222.jpg', 24),
-(32, '1733606433829-111111.jpg', 24);
 
 -- --------------------------------------------------------
 
@@ -307,13 +259,13 @@ ALTER TABLE `contact`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `product_image`
 --
 ALTER TABLE `product_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `sub_category`

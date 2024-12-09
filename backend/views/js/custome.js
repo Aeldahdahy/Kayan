@@ -1263,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const productDescription = document.getElementById('productDescription').value;
             const productSale = document.getElementById('productSale').value;
             const stockQuantity = document.getElementById('stockQuantity').value;
-            const language = document.getElementById('LangId').value;
+            const language = document.getElementById('LangId').value.trim(); // Trim whitespace
             const subcategoryId = document.getElementById('subcategoryId').value;
             const brandId = document.getElementById('brandId').value;
         
@@ -1274,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
             const productImages = document.querySelectorAll('input[name="product_images[]"]');
             const imageIds = document.querySelectorAll('input[name="image_ids[]"]');
-            const deletedImageIds = document.querySelectorAll('input[name="deleted_image_ids[]"]'); // Track deleted images
+            const deletedImageIds = document.querySelectorAll('input[name="deleted_image_ids[]"]');
         
             const formData = new FormData();
             formData.append('product_name', productName);
@@ -1285,28 +1285,25 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('sub_category_id', subcategoryId);
             formData.append('brand_id', brandId);
         
+            console.log('Trimmed language value (frontend):', language);
+        
             let imageFilesAdded = false;
         
-            // Add existing or new images
             productImages.forEach((imageInput, index) => {
                 const imageId = imageIds && imageIds[index] ? imageIds[index].value : null;
         
                 if (imageInput.files.length > 0) {
-                    // A new file is selected; replace the old image
                     formData.append('product_images[]', imageInput.files[0]);
                     imageFilesAdded = true;
                 } else if (imageId) {
-                    // No new file selected; retain the old image ID
                     formData.append('image_ids[]', imageId);
                 }
             });
         
-            // Add IDs of deleted images
             deletedImageIds.forEach((deletedImageInput) => {
                 formData.append('deleted_image_ids[]', deletedImageInput.value);
             });
         
-            // If no images are added for a new product, show an error
             if (!imageFilesAdded && !productId) {
                 alert(lang.atLeastOneImageRequired || 'At least one image is required for a new product.');
                 return;
@@ -1328,12 +1325,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
                 if (res.ok) {
                     alert(response.message || 'Product saved successfully.');
-                    fetchProduct(); // Refresh the product list
-                    productForm.reset(); // Reset form fields after successful submission
+                    fetchProduct();
+                    productForm.reset();
         
-                    // Reset image previews
-                    document.getElementById('productImagePreview').style.display = 'none'; // Hide preview
-                    document.getElementById('additionalImagesContainer').innerHTML = ''; // Clear additional images container
+                    document.getElementById('productImagePreview').style.display = 'none';
+                    document.getElementById('additionalImagesContainer').innerHTML = '';
                 } else {
                     console.error('Error response:', response);
                     alert(response.message || lang.productSaveFailed || 'Failed to save the product.');
@@ -1343,6 +1339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(lang.productSaveError || 'An error occurred while saving the product.');
             }
         });
+        
         
               
     }

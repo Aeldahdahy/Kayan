@@ -1154,23 +1154,29 @@ const getProductID = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-    const { product_name, product_description, product_sale, stock_quantity, sub_category_id, brand_id, image_ids } = req.body;
+    const { product_name, product_description, product_sale, stock_quantity, language, sub_category_id, brand_id, image_ids } = req.body;
     const product_id = req.params.id;
 
+    // Trim and validate the language field
+    const sanitizedLanguage = language?.trim();
+    if (!['en', 'ar'].includes(sanitizedLanguage)) {
+        console.log('Invalid language value:', sanitizedLanguage);
+        return res.status(400).json({ message: 'Invalid language value. Accepted values are "en" or "ar".' });
+    }
+
     const productImages = req.files || [];
-    const imageIds = Array.isArray(image_ids) ? image_ids : image_ids ? [image_ids] : [];
+    const imageIdsArray = Array.isArray(image_ids) ? image_ids : image_ids ? [image_ids] : [];
 
     if (!product_id || 
-        (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && productImages.length === 0 && imageIds.length === 0)) {
+        (!product_name && !product_description && !product_sale && !stock_quantity && !sub_category_id && !brand_id && productImages.length === 0 && imageIdsArray.length === 0)) {
         return res.status(400).json({ message: 'Please provide valid fields to update.' });
     }
 
     try {
         const connection = await db.getConnection();
         try {
-            await connection.beginTransaction(); // Start a transaction for consistency
+            await connection.beginTransaction();
 
-            // Update the `product` table with only valid fields
             const productUpdateFields = [];
             const productUpdateParams = [];
 
@@ -1190,6 +1196,10 @@ const updateProduct = async (req, res) => {
                 productUpdateFields.push('stock_quantity = ?');
                 productUpdateParams.push(stock_quantity);
             }
+            if (sanitizedLanguage) {
+                productUpdateFields.push('language = ?');
+                productUpdateParams.push(sanitizedLanguage);
+            }
             if (sub_category_id && !isNaN(sub_category_id)) {
                 productUpdateFields.push('sub_category_id = ?');
                 productUpdateParams.push(sub_category_id);
@@ -1207,20 +1217,16 @@ const updateProduct = async (req, res) => {
                 await connection.query(productUpdateQuery, productUpdateParams);
             }
 
-            // Fetch existing images for the product
             const [existingImages] = await connection.query(
                 'SELECT image_id, image FROM product_image WHERE product_id = ?',
                 [product_id]
             );
 
             const existingImageIds = existingImages.map(img => String(img.image_id));
-
-            // Check if any images are removed explicitly
             const imagesToDelete = existingImages
-                .filter(img => !imageIds.includes(String(img.image_id))) // Images not in the provided image_ids
+                .filter(img => !imageIdsArray.includes(String(img.image_id)))
                 .map(img => img.image_id);
 
-            // Delete explicitly removed images
             if (imagesToDelete.length > 0) {
                 await connection.query(
                     'DELETE FROM product_image WHERE image_id IN (?) AND product_id = ?',
@@ -1228,7 +1234,6 @@ const updateProduct = async (req, res) => {
                 );
             }
 
-            // Insert or update new images
             for (let i = 0; i < productImages.length; i++) {
                 const newImage = productImages[i] ? productImages[i].filename : null;
                 if (newImage) {
@@ -1243,7 +1248,7 @@ const updateProduct = async (req, res) => {
 
             const [updatedProduct] = await connection.query(
                 `SELECT 
-                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, 
+                    p.product_id, p.product_name, p.product_description, p.product_sale, p.stock_quantity, p.language,
                     p.sub_category_id, p.brand_id, pi.image AS product_image 
                  FROM product p
                  LEFT JOIN product_image pi ON p.product_id = pi.product_id 
@@ -1264,6 +1269,7 @@ const updateProduct = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 const deleteProduct = async (req, res) => {
     const { id } = req.params; // product_id from the URL
