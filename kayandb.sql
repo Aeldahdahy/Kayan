@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 07:21 PM
+-- Generation Time: Dec 09, 2024 at 01:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -60,15 +60,15 @@ CREATE TABLE `brand` (
 --
 
 INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`, `language`) VALUES
-(1, 'Burger', 'Oman', '/uploads/brands/1732041712042-Android Emulator - Pixel_8_Pro_API_35_5554 8_25_2024 9_06_23 PM.png', 'en'),
-(2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1732043444277-Dina Farms OD - Google Docs - Google Chrome 11_16_2024 1_54_38 PM.png', 'en'),
-(3, 'Elba', 'Oman', '/uploads/brands/1732043480229-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_47_21 PM.png', 'en'),
-(4, 'Elica', 'Oman', '/uploads/brands/1732043519110-Products - Google Chrome 11_16_2024 2_00_22 PM.png', 'en'),
-(5, 'Lieheir', 'Oman', '/uploads/brands/1732043565190-_Wi-Fi 10_20_2024 6_50_48 PM.png', 'en'),
-(6, 'Fresh', 'Oman', '/uploads/brands/1732043583718-_Wi-Fi 10_27_2024 6_56_10 PM.png', 'en'),
-(7, 'LDYLUIM', 'Oman', '/uploads/brands/1732043613837-Marketing in dynamic Envirnment 2023 - Dina Farms - Final Version - (I) Marketing In a Dynamic - Studocu - Google Chrome 11_17_2024 3_36_36 PM.png', 'en'),
-(8, 'fkjsdvn', 'Oman', '/uploads/brands/1732903630908-404 Not Found - Google Chrome 11_17_2024 5_22_34 PM.png', 'ar'),
-(9, 'Kumtel', 'Oman', '/uploads/brands/1732043748634-IDEA_ Innovation Domestic Entrepreneur Agency - Google Chrome 9_3_2024 8_49_08 PM.png', 'en');
+(1, 'Burger', 'Oman', '/uploads/brands/1733242697232-270x282-1_-dVUhRH4966sCOk.jpg', 'en'),
+(2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1733242707106-2222222.jpg', 'en'),
+(3, 'Elba', 'Oman', '/uploads/brands/1733242720796-111111.jpg', 'en'),
+(4, 'Elica', 'Oman', '/uploads/brands/1733242734202-270x282-1_-dVUhRH4966sCOk.jpg', 'en'),
+(5, 'Lieheir', 'Oman', '/uploads/brands/1733242741975-111111.jpg', 'en'),
+(6, 'Fresh', 'Oman', '/uploads/brands/1733242749781-270x282-1_-dVUhRH4966sCOk.jpg', 'en'),
+(7, 'LDYLUIM', 'Oman', '/uploads/brands/1733242759274-2222222.jpg', 'en'),
+(8, 'Lamborghini', 'Oman', '/uploads/brands/1733242771292-111111.jpg', 'en'),
+(9, 'Kumtel', 'Oman', '/uploads/brands/1733242781051-270x282-1_-dVUhRH4966sCOk.jpg', 'en');
 
 -- --------------------------------------------------------
 
@@ -102,10 +102,20 @@ INSERT INTO `category` (`category_id`, `category_name`, `language`) VALUES
 
 CREATE TABLE `contact` (
   `contact_id` int(11) NOT NULL,
-  `client_name` varchar(255) NOT NULL,
-  `client_email` varchar(255) NOT NULL,
-  `message` varchar(300) NOT NULL
+  `message` text NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(255) NOT NULL,
+  `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `contact`
+--
+
+INSERT INTO `contact` (`contact_id`, `message`, `name`, `email`, `phone`, `product_id`) VALUES
+(2, 'How much does this product cost?', 'Taha', 'tahaelrajel8@gmail.com', '01142903857', 14),
+(3, 'Hi', 'Taha', 'tahaelrajel8@gmail.com', '01142903857', 18);
 
 -- --------------------------------------------------------
 
@@ -117,7 +127,7 @@ CREATE TABLE `product` (
   `product_id` int(11) NOT NULL,
   `product_name` varchar(255) NOT NULL,
   `product_description` varchar(255) NOT NULL,
-  `product_sale` decimal(5,2) NOT NULL,
+  `product_sale` varchar(255) NOT NULL,
   `stock_quantity` int(11) NOT NULL,
   `language` enum('en','ar') NOT NULL,
   `admin_id` int(11) NOT NULL,
@@ -130,8 +140,17 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `product_sale`, `stock_quantity`, `language`, `admin_id`, `sub_category_id`, `brand_id`) VALUES
-(11, 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation.	', 58.00, 50, 'en', 12, 8, 1),
-(12, 'Wireless Headphones', 'High-quality wireless headphones with noise cancellation.', 23.00, 132, 'en', 12, 4, 2);
+(8, 'BOB', 'bob2002', '10.00', 1, 'en', 12, 1, 9),
+(14, 'Taha', 'taha2002', '25.00', 100, 'en', 12, 2, 4),
+(15, 'lkdsnvldskn', 'lkxncvlkxn', '10.00', 10, 'en', 12, 2, 9),
+(17, 'kdngsd', 'dfgdfgf', '50.00', 96, 'en', 12, 5, 9),
+(18, 'sedfsf', 'sfnfklfs', '32.00', 32, 'en', 12, 13, 7),
+(19, 'dsfsfegfr', 'gvjskwfk', '23.00', 72, 'en', 12, 13, 1),
+(20, 'ffsdvdfdssw', 'jksducys', '21.00', 89, 'en', 12, 8, 5),
+(21, 'BOB12', 'sdvxknv kldfnkl', '144.00', 5454, 'en', 12, 11, 7),
+(22, 'BOB344', 'dwfjnkedf', '23.00', 554, 'en', 12, 6, 6),
+(23, 'Tahaaaaaaaaaaaaaaaaa', 'ldsnvldnfk', '0', 3, 'en', 12, 6, 5),
+(24, 'khalaf', 'lksdjg;sjd;gms;ldgm;sl', '15', 50, 'en', 12, 12, 9);
 
 -- --------------------------------------------------------
 
@@ -150,8 +169,23 @@ CREATE TABLE `product_image` (
 --
 
 INSERT INTO `product_image` (`image_id`, `image`, `product_id`) VALUES
-(10, '1732903870374-chapter one OD (1).pdf - Personal - Microsoftâ Edge 11_15_2024 6_51_50 PM.png', 11),
-(11, '1732899095419-404 Not Found - Google Chrome 11_17_2024 5_22_34 PM.png', 12);
+(7, '1733184846236-2222222.jpg', 8),
+(16, '1733359758097-270x282-1_-dVUhRH4966sCOk.jpg', 8),
+(17, '1733359951232-2222222.jpg', 14),
+(18, '1733359951232-270x282-1_-dVUhRH4966sCOk.jpg', 14),
+(20, '1733360087264-2222222.jpg', 15),
+(21, '1733360229262-270x282-1_-dVUhRH4966sCOk.jpg', 17),
+(22, '1733360229262-111111.jpg', 17),
+(23, '1733362427038-111111.jpg', 18),
+(24, '1733362461317-2222222.jpg', 19),
+(25, '1733362491357-2222222.jpg', 20),
+(26, '1733362529574-2222222.jpg', 21),
+(27, '1733362529574-270x282-1_-dVUhRH4966sCOk.jpg', 21),
+(28, '1733362566546-270x282-1_-dVUhRH4966sCOk.jpg', 22),
+(29, '1733362600488-270x282-1_-dVUhRH4966sCOk.jpg', 23),
+(30, '1733606433828-270x282-1_-dVUhRH4966sCOk.jpg', 24),
+(31, '1733606433828-2222222.jpg', 24),
+(32, '1733606433829-111111.jpg', 24);
 
 -- --------------------------------------------------------
 
@@ -215,7 +249,8 @@ ALTER TABLE `category`
 -- Indexes for table `contact`
 --
 ALTER TABLE `contact`
-  ADD PRIMARY KEY (`contact_id`);
+  ADD PRIMARY KEY (`contact_id`),
+  ADD KEY `product_contact_id` (`product_id`);
 
 --
 -- Indexes for table `product`
@@ -254,41 +289,47 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `contact`
 --
 ALTER TABLE `contact`
-  MODIFY `contact_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `contact_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `product_image`
 --
 ALTER TABLE `product_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `sub_category`
 --
 ALTER TABLE `sub_category`
-  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `sub_category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `contact`
+--
+ALTER TABLE `contact`
+  ADD CONSTRAINT `product_contact_id` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`);
 
 --
 -- Constraints for table `product`
