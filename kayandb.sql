@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 09, 2024 at 02:42 PM
+-- Generation Time: Dec 13, 2024 at 01:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `kayandb`
+-- Database: `kayandb1`
 --
 
 -- --------------------------------------------------------
@@ -60,7 +60,7 @@ CREATE TABLE `brand` (
 --
 
 INSERT INTO `brand` (`brand_id`, `brand_name`, `brand_country`, `brand_logo`, `language`) VALUES
-(1, 'Burger', 'Oman', '/uploads/brands/1733242697232-270x282-1_-dVUhRH4966sCOk.jpg', 'en'),
+(1, 'Burger', 'Oman', '/uploads/brands/1733864451221-image1.png', 'en'),
 (2, 'Giffe cusine Gieffe', 'Oman', '/uploads/brands/1733242707106-2222222.jpg', 'en'),
 (3, 'Elba', 'Oman', '/uploads/brands/1733242720796-111111.jpg', 'en'),
 (4, 'Elica', 'Oman', '/uploads/brands/1733242734202-270x282-1_-dVUhRH4966sCOk.jpg', 'en'),
@@ -127,6 +127,14 @@ CREATE TABLE `product` (
   `brand_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `product_sale`, `stock_quantity`, `language`, `admin_id`, `sub_category_id`, `brand_id`) VALUES
+(26, 'Wireless Headphonesq', 'yugyugyugyugguguguy', '20', 20, 'en', 12, 1, 1),
+(27, 'sdffjsdklfm', 'dsffklmsdfklmsdfk', '7', 4, 'en', 12, 1, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -138,6 +146,14 @@ CREATE TABLE `product_image` (
   `image` varchar(255) NOT NULL,
   `product_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product_image`
+--
+
+INSERT INTO `product_image` (`image_id`, `image`, `product_id`) VALUES
+(34, '1733864476156-image1.png', 26),
+(35, '1734050380280-img-0.2.jpg', 27);
 
 -- --------------------------------------------------------
 
@@ -259,13 +275,13 @@ ALTER TABLE `contact`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `product_image`
 --
 ALTER TABLE `product_image`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `sub_category`
