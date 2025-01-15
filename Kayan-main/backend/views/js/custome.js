@@ -1,5 +1,5 @@
-const API_BASE = "http://localhost:2000/public";
-const RROUTES_API_BASE = "http://localhost:2000";
+const API_BASE = "http://http://44.222.199.101:2000//public";
+const RROUTES_API_BASE = "http://http://44.222.199.101:2000/";
 
 const translations = {
     en: {

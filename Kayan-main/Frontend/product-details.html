@@ -553,8 +553,8 @@ height: 340px;
 	<script src="assets/js/aivons.js"></script>
 
 	<script>
-		const API_BASE = "http://localhost:2000/public";
-		const IMAGE_BASE = "http://localhost:2000"; // Ensure this points to your server's root URL
+		const API_BASE = "http://http://44.222.199.101:2000//public";
+		const IMAGE_BASE = "http://http://44.222.199.101:2000/"; // Ensure this points to your server's root URL
 
 		// Get product_id from URL parameters
 		const urlParams = new URLSearchParams(window.location.search);
@@ -643,7 +643,7 @@ height: 340px;
 				const formObject = Object.fromEntries(formData.entries());
 
 				try {
-					const response = await fetch("http://localhost:2000/public/submitContactForm", {
+					const response = await fetch("http://http://44.222.199.101:2000//public/submitContactForm", {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
