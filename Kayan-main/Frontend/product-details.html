@@ -92,8 +92,8 @@ height: 340px;
                             <div class="octf-mainbar-row octf-row">
                                 <div class="octf-col logo-col no-padding">
                                     <div id="site-logo" class="site-logo">
-                                        <a href="../../Website/index.html">
-                                            <img src="images/logo-grey3.png" alt="Theratio" class="">
+                                        <a href="../../index.html">
+                                            <img src="Main-img/K logo (2).png" alt="Theratio" class="">
                                         </a>
                                     </div>
                                 </div>
@@ -101,13 +101,13 @@ height: 340px;
                                     <nav id="site-navigation" class="main-navigation">
                                         <ul class="menu">
                                             <li>
-                                                <a href="../../Website/index.html">Home</a> </li>
+                                                <a href="../../index.html">Home</a> </li>
                                            
                                             <li><a href="Brands.html">Brands</a></li>
                                             <li class="current-menu-item current-menu-ancestor"><a href="shop.html">Categories</a></li>
                                             
-                                            <li><a href="../../Website/contact.html">Contact Us</a></li>
-                                            <li><a href="../../Website/about-us.html">About Us</a></li>
+                                            <li><a href="../../contact.html">Contact Us</a></li>
+                                            <li><a href="../../about-us.html">About Us</a></li>
                                         </ul>
                                     </nav>
                                 </div>
@@ -137,18 +137,18 @@ height: 340px;
                         <div class="octf-col">
                             <div class="mlogo_wrapper clearfix">
                                 <div class="mobile_logo">
-                                    <a href="../../Website/index.html">
-                                        <img src="images/logo-grey3.png">
+                                    <a href="../../index.html">
+                                        <img src="Main-img/K logo (2).png">
                                     </a>
                                 </div>
                             </div>
                         </div>
                         <div class="octf-col justify-content-end">
-                            <div class="octf-search octf-cta-header">
+                            <!-- <div class="octf-search octf-cta-header">
                                 <div class="toggle_search octf-cta-icons">
                                     <i class="ot-flaticon-search"></i>
                                 </div>
-                                <!-- Form Search on Header -->
+                                
                                 <div class="h-search-form-field collapse">
                                     <div class="h-search-form-inner">
                                         <form role="search" method="get" class="search-form">
@@ -157,7 +157,7 @@ height: 340px;
                                         </form>
                                     </div>                                  
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="octf-menu-mobile octf-cta-header">
                                 <div id="mmenu-toggle" class="mmenu-toggle">
                                     <button><i class="ot-flaticon-menu"></i></button>
@@ -169,14 +169,14 @@ height: 340px;
 										<div class="mobile-nav">
                                             <ul id="menu-main-menu" class="mobile_mainmenu none-style">
                                                 <li>
-                                                    <a href="../../Website/index.html">Home</a></li>
+                                                    <a href="../../index.html">Home</a></li>
 
                                                 <li><a href="Brands.html">Brands</a> </li>
                                             
                                                 <li class="current-menu-item current-menu-ancestor"><a href="shop.html">Categories</a></li>
 
-                                                <li><a href="../../Website/about-us.html">About Us</a></li>
-                                                <li><a href="../../Website/contact.html">Contact Us</a></li>
+                                                <li><a href="../../about-us.html">About Us</a></li>
+                                                <li><a href="../../contact.html">Contact Us</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -192,8 +192,8 @@ height: 340px;
             <div class="side-panel-block">
                 <div class="side-panel-wrap">
                     <div class="the-logo">
-                        <a href="../../Website/index.html">
-                            <img src="images/logo-grey3.png" alt="Theratio">
+                        <a href="../../index.html">
+                            <img src="Main-img/K logo (3).png" alt="Theratio">
                         </a>                    
                     </div>
                     
@@ -213,7 +213,7 @@ height: 340px;
                             </li>
                             <li class="panel-list-item">
                                 <span class="panel-list-icon"><i class="ot-flaticon-phone-call"></i></span>
-                                <span class="panel-list-text">+968-24125994</span>
+                                <span class="panel-list-text">92507367</span>
                             </li>
                         </ul>
                     </div>
@@ -243,7 +243,7 @@ height: 340px;
 			<div class="container">
 				<h1 class="page-title">Product Details</h1>
 				<ul id="breadcrumbs" class="breadcrumbs none-style">
-					<li><a href="../../Website/index.html">Home</a></li>
+					<li><a href="../../index.html">Home</a></li>
 					<li class="active">Product Details</li>
 				</ul>    
 			</div>
@@ -296,8 +296,8 @@ height: 340px;
 							</div><!-- /.product-details__content__quantity -->
 		
 							<div class="product-details__content__buttons">
-								<a href="cart.html" class="thm-btn cart-btn">Contact Us!</a><!-- /.thm-btn -->
-								<a href="#" class="thm-btn wishlist-btn">Discover More!</a><!-- /.thm-btn wishlist-btn -->
+								<a href="../../contact.html" class="thm-btn cart-btn">Contact Us!</a><!-- /.thm-btn -->
+								<a href="shop.html" class="thm-btn wishlist-btn">Discover More!</a><!-- /.thm-btn wishlist-btn -->
 							</div><!-- /.product-details__content__buttons -->
 		
 							<div class="product-details__content__social">
@@ -329,34 +329,27 @@ height: 340px;
 			</div><!-- /.container -->
 		</section><!-- /.product-content -->
 
-
 		<section class="product-form">
 			<div class="container">
 				<h2 class="product-content__title">Ask For More Details!</h2>
-				<form id="contactForm" class="comment-one__form contact-form-validated" novalidate="novalidate">
+				<form id="contactForm" class="comment-one__form contact-form-validated" action="https://api.web3forms.com/submit" method="POST" novalidate>
+					<!-- Hidden field for Web3Forms access key -->
+					<input type="hidden" name="access_key" value="74fabde4-6157-41af-a1d4-e1730e4c7b3b" />
+				
 					<div class="row">
 						<div class="col-xl-12">
 							<div class="comment-form__input-box">
 								<textarea name="message" placeholder="Write Message" required></textarea>
-								<div class="comment-form__icon contact-expert__icon-comment">
-									<i class="far fa-comment"></i>
-								</div>
 							</div>
 						</div>
 						<div class="col-xl-6">
 							<div class="comment-form__input-box">
-								<input type="text" name="name" placeholder="Your name" required>
-								<div class="comment-form__icon">
-									<i class="far fa-user-circle"></i>
-								</div>
+								<input type="text" name="name" placeholder="Your Name" required>
 							</div>
 						</div>
 						<div class="col-xl-6">
 							<div class="comment-form__input-box">
 								<input type="email" name="email" placeholder="Email Address" required>
-								<div class="comment-form__icon">
-									<i class="far fa-envelope"></i>
-								</div>
 							</div>
 						</div>
 						<div class="col-xl-6">
@@ -364,9 +357,9 @@ height: 340px;
 								<input type="text" name="phone" placeholder="Phone Number" required>
 							</div>
 						</div>
-						<div>
-							<input type="hidden" name="product_id" id="product-id-hidden">
-						</div>
+						<!-- Additional hidden fields for product ID and product name -->
+						<input type="hidden" name="product_id" id="product-id-hidden" value="">
+						<input type="hidden" name="product_name" id="product-name-hidden" value="">
 					</div>
 					<div class="row">
 						<div class="col-xl-12">
@@ -375,7 +368,7 @@ height: 340px;
 					</div>
 				</form>
 			</div>
-			</section>
+		</section>
 
 
 		<!--Site Footer One Start-->
@@ -384,7 +377,7 @@ height: 340px;
                 <div class="row">
                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-4 mb-xl-0">
                         <div class="widget-footer">
-                            <img src="images/logo-grey3.png" class="footer-logo" alt="">
+                            <img src="Main-img/K logo (3).png" class="footer-logo" alt="">
                             <p>We provides a full range of interior design, architectural design.</p>
                             <div class="footer-social list-social">
                                 <ul>
@@ -411,7 +404,7 @@ height: 340px;
                                 </li>
                                 <li class="footer-list-item">
                                     <span class="list-item-icon"><i class="ot-flaticon-phone-call"></i></span>
-                                    <span class="list-item-text">+968-24125994</span>
+                                    <span class="list-item-text">92507367</span>
                                 </li>
                             </ul>
                         </div>
@@ -431,8 +424,8 @@ height: 340px;
                         <div class="widget-footer widget-contact">
                             <h6>Pages</h6>
                             <ul>
-                                <li><a href="../../Website/about-us.html">About-US</a></li>
-                                <li><a href="../../Website/contact.html">Contact-Us</a></li>
+                                <li><a href="../../about-us.html">About-US</a></li>
+                                <li><a href="../../contact.html">Contact-Us</a></li>
                                 <li><a href="Brands.html">Our Brands</a></li>
                             </ul>
                         </div>
@@ -450,7 +443,7 @@ height: 340px;
                     <div class="col-lg-5 col-md-12 align-self-center">
                         <ul class="icon-list-items inline-items justify-content-lg-end">
                             <li class="icon-list-item inline-item">
-                                <a href="../../Website/contact.html"><span class="icon-list-text">Contact Us</span></a>
+                                <a href="../../contact.html"><span class="icon-list-text">Contact Us</span></a>
                             </li>
                             <li class="icon-list-item inline-item">
                                 <a href="#"><span class="icon-list-text">Kayan Oman</span></a>
@@ -473,7 +466,7 @@ height: 340px;
 			<span class="mobile-nav__close mobile-nav__toggler"><i class="fa fa-times"></i></span>
 
 			<div class="logo-box">
-				<a href="../../Website/index.html" aria-label="logo image"><img src="assets/images/logo-grey3.png"
+				<a href="../../index.html" aria-label="logo image"><img src="Main-img/K logo (2).png"
 						alt="" /></a>
 			</div>
 			<!-- /.logo-box -->
@@ -553,8 +546,8 @@ height: 340px;
 	<script src="assets/js/aivons.js"></script>
 
 	<script>
-		const API_BASE = "http://44.222.199.101:2000/public";
-		const IMAGE_BASE = "http://44.222.199.101:2000"; // Ensure this points to your server's root URL
+		const API_BASE = "http://92.113.31.237:2000/public";
+		const IMAGE_BASE = "http://92.113.31.237:2000"; // Ensure this points to your server's root URL
 
 		// Get product_id from URL parameters
 		const urlParams = new URLSearchParams(window.location.search);
@@ -643,7 +636,7 @@ height: 340px;
 				const formObject = Object.fromEntries(formData.entries());
 
 				try {
-					const response = await fetch("http://44.222.199.101:2000/public/submitContactForm", {
+					const response = await fetch("http://92.113.31.237:2000/public/submitContactForm", {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -664,7 +657,7 @@ height: 340px;
 				}
 			});
 		});
-
+		
 
 
 	</script>
