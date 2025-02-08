@@ -131,14 +131,78 @@ const getClientEnglishCategoriesWithSubCategories = async (req, res) => {
     try {
         const connection = await db.getConnection();
         try {
-            // Query to retrieve English subcategories
+            // Extract language from request params
+            const { language } = req.params; // Or use req.query.language if you pass it as a query parameter
+            
+            if (!language) {
+                return res.status(400).json({ message: 'Language parameter is required' });
+            }
+
+            // Query to retrieve subcategories for the specified language
             const [subCategories] = await connection.query(
                 'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category WHERE language = ?',
-                ['en']
+                [language]
             );
 
             if (subCategories.length === 0) {
-                return res.status(404).json({ message: 'No English subcategories found' });
+                return res.status(404).json({ message: `No subcategories found for language: ${language}` });
+            }
+
+            // Retrieve category names for the corresponding category_ids
+            const categoryIds = subCategories.map(subCategory => subCategory.category_id);
+            const [categories] = await connection.query(
+                'SELECT category_id, category_name FROM category WHERE category_id IN (?)',
+                [categoryIds]
+            );
+
+            // Create a mapping of category_id to category_name
+            const categoryMap = categories.reduce((map, category) => {
+                map[category.category_id] = category.category_name;
+                return map;
+            }, {});
+
+            // Organize categories and their subcategories
+            const categoriesWithSubCategories = categories.map(category => {
+                const relatedSubCategories = subCategories.filter(
+                    subCategory => subCategory.category_id === category.category_id
+                );
+                return {
+                    category_id: category.category_id,
+                    category_name: category.category_name,
+                    subcategories: relatedSubCategories
+                };
+            });
+
+            res.status(200).json({
+                message: `Categories with subcategories retrieved successfully for language: ${language}`,
+                categories: categoriesWithSubCategories,
+            });
+        } catch (error) {
+            console.error('Database query error: ', error);
+            res.status(500).json({ message: 'Server error' });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Database connection error: ', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
+const getClientArabicCategoriesWithSubCategories = async (req, res) => {
+    try {
+        const connection = await db.getConnection();
+        try {
+            // Query to retrieve Arabic subcategories
+            const [subCategories] = await connection.query(
+                'SELECT sub_category_id, sub_category_name, category_id, language FROM sub_category WHERE language = ?',
+                ['ar']
+            );
+
+            if (subCategories.length === 0) {
+                return res.status(404).json({ message: 'No Arabic subcategories found' });
             }
 
             // Retrieve category names for the corresponding category_ids
@@ -505,7 +569,11 @@ const searchClientProductEn = async (req, res) => {
     try {
         const connection = await db.getConnection();
         try {
-            const { search, brand_id, sub_category_id, category_id } = req.query;
+            const { search, brand_id, sub_category_id, category_id, language } = req.query;
+
+            if (!language) {
+                return res.status(400).json({ message: 'Language parameter is required' });
+            }
 
             let query = `
                 SELECT 
@@ -514,10 +582,10 @@ const searchClientProductEn = async (req, res) => {
                     pi.image AS product_image
                 FROM product p
                 LEFT JOIN product_image pi ON p.product_id = pi.product_id
-                WHERE p.language = 'en'
+                WHERE p.language = ?
             `;
 
-            const queryParams = [];
+            const queryParams = [language];
 
             // Add search filter
             if (search) {
@@ -596,6 +664,8 @@ const searchClientProductEn = async (req, res) => {
 
 
 
+
+
 const submitContactForm = async (req, res) => {
     const { message, name, email, phone, product_id } = req.body;
 
@@ -638,6 +708,7 @@ module.exports = {
     getClientEnglishCategories,
     getClientArabicCategories,
     getClientEnglishCategoriesWithSubCategories,
+    getClientArabicCategoriesWithSubCategories,
     getClientEnglishSubCategories,
     getClientArabicSubCategories,
     getClientProductEn,

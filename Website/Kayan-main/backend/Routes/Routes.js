@@ -35,6 +35,7 @@ const {
     getClientEnglishCategories,
     getClientArabicCategories,
     getClientEnglishCategoriesWithSubCategories,
+    getClientArabicCategoriesWithSubCategories,
     getClientEnglishSubCategories,
     getClientArabicSubCategories,
     getClientProductEn,
@@ -164,8 +165,11 @@ router.get('/getClientEnglishCategory', getClientEnglishCategories);
 // Get category by Arabic language
 router.get('/getClientArabicCategory', getClientArabicCategories);
 
+// Get category by English language
+router.get('/getClientEnglishCategoriesWithSubCategories/:language', getClientEnglishCategoriesWithSubCategories);
+
 // Get category by Arabic language
-router.get('/getClientEnglishCategoriesWithSubCategories', getClientEnglishCategoriesWithSubCategories);
+router.get('/getClientArabicCategoriesWithSubCategories', getClientArabicCategoriesWithSubCategories);
 
 // Get SubCategory by English language
 router.get('/getClientEnglishCategory', getClientEnglishSubCategories);
