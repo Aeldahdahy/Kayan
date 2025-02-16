@@ -1,5 +1,5 @@
-const API_BASE = "http://localhost:2000/public";
-const RROUTES_API_BASE = "http://localhost:2000";
+const API_BASE = "https://api.kayanomann.com/public";
+const RROUTES_API_BASE = "https://api.kayanomann.com";
 
 const translations = {
     en: {
